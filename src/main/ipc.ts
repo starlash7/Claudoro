@@ -3,15 +3,24 @@ import { promisify } from 'node:util'
 import { BrowserWindow, Notification, dialog, ipcMain, shell } from 'electron'
 import {
   type ExternalOpenPayload,
-  IPC_CHANNELS,
   type GitCommitPayload,
   type GitCommitResult,
-  type NotificationPayload
+  IPC_CHANNELS,
+  type NotificationPayload,
+  type TrayStatePayload
 } from '../shared/constants'
 
 const execFileAsync = promisify(execFile)
 
-export const registerIpcHandlers = (getMainWindow: () => BrowserWindow | null): void => {
+interface RegisterIpcHandlersOptions {
+  getMainWindow: () => BrowserWindow | null
+  onTrayStateUpdate?: (payload: TrayStatePayload) => void
+}
+
+export const registerIpcHandlers = ({
+  getMainWindow,
+  onTrayStateUpdate
+}: RegisterIpcHandlersOptions): void => {
   ipcMain.handle(IPC_CHANNELS.WINDOW_MINIMIZE, () => {
     const mainWindow = getMainWindow()
 
@@ -30,7 +39,8 @@ export const registerIpcHandlers = (getMainWindow: () => BrowserWindow | null): 
       return false
     }
 
-    mainWindow.close()
+    // Tray를 사용하는 동안 앱을 유지하기 위해 창을 숨깁니다.
+    mainWindow.hide()
     return true
   })
 
@@ -67,6 +77,11 @@ export const registerIpcHandlers = (getMainWindow: () => BrowserWindow | null): 
     } catch {
       return false
     }
+  })
+
+  ipcMain.handle(IPC_CHANNELS.TRAY_UPDATE_STATE, (_, payload: TrayStatePayload) => {
+    onTrayStateUpdate?.(payload)
+    return true
   })
 
   ipcMain.handle(IPC_CHANNELS.DIALOG_SELECT_DIRECTORY, async () => {

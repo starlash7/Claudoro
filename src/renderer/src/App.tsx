@@ -11,9 +11,11 @@ import GitHubWidget from './components/GitHub/GitHubWidget'
 import MediaLauncher from './components/Media/MediaLauncher'
 import { useTimerStore } from './store/timerStore'
 import { useTimer } from './hooks/useTimer'
+import { useTrayIntegration } from './hooks/useTrayIntegration'
 
 function App(): React.JSX.Element {
   useTimer()
+  useTrayIntegration()
 
   const mode = useTimerStore((state) => state.mode)
   const timeRemaining = useTimerStore((state) => state.timeRemaining)

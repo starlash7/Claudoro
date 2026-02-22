@@ -2,6 +2,8 @@ import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { registerIpcHandlers } from './ipc'
+import { createAppTray, destroyAppTray, updateAppTrayState } from './tray'
+import { IPC_CHANNELS, type TrayAction } from '../shared/constants'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -41,6 +43,28 @@ const createWindow = (): BrowserWindow => {
   return window
 }
 
+const showMainWindow = (): void => {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    mainWindow = createWindow()
+    return
+  }
+
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore()
+  }
+
+  mainWindow.show()
+  mainWindow.focus()
+}
+
+const emitTrayAction = (action: TrayAction): void => {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return
+  }
+
+  mainWindow.webContents.send(IPC_CHANNELS.TRAY_ACTION, action)
+}
+
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.claudoro.app')
 
@@ -49,13 +73,40 @@ app.whenReady().then(() => {
   })
 
   mainWindow = createWindow()
-  registerIpcHandlers(() => mainWindow)
+
+  const trayHandlers = {
+    onOpen: () => {
+      showMainWindow()
+    },
+    onToggleTimer: () => {
+      emitTrayAction('toggle-timer')
+    },
+    onQuit: () => {
+      app.quit()
+    }
+  }
+
+  createAppTray(trayHandlers)
+
+  registerIpcHandlers({
+    getMainWindow: () => mainWindow,
+    onTrayStateUpdate: (payload) => {
+      updateAppTrayState(payload, trayHandlers)
+    }
+  })
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       mainWindow = createWindow()
+      return
     }
+
+    showMainWindow()
   })
+})
+
+app.on('before-quit', () => {
+  destroyAppTray()
 })
 
 app.on('window-all-closed', () => {

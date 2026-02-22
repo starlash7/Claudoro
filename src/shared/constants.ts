@@ -16,7 +16,9 @@ export const IPC_CHANNELS = {
   NOTIFICATION_SHOW: 'notification:show',
   GIT_COMMIT: 'git:commit',
   DIALOG_SELECT_DIRECTORY: 'dialog:select-directory',
-  EXTERNAL_OPEN: 'external:open'
+  EXTERNAL_OPEN: 'external:open',
+  TRAY_UPDATE_STATE: 'tray:update-state',
+  TRAY_ACTION: 'tray:action'
 } as const
 
 export type MascotState = 'idle' | 'focusing' | 'break' | 'complete'
@@ -41,4 +43,12 @@ export interface GitCommitResult {
 
 export interface ExternalOpenPayload {
   url: string
+}
+
+export type TrayAction = 'toggle-timer'
+
+export interface TrayStatePayload {
+  mode: TimerMode
+  status: TimerStatus
+  timeRemaining: number
 }

@@ -2,7 +2,9 @@ import type {
   ExternalOpenPayload,
   GitCommitPayload,
   GitCommitResult,
-  NotificationPayload
+  NotificationPayload,
+  TrayAction,
+  TrayStatePayload
 } from '../../../shared/constants'
 
 interface ElectronAPI {
@@ -13,6 +15,8 @@ interface ElectronAPI {
   selectDirectory: () => Promise<string | null>
   commitChanges: (payload: GitCommitPayload) => Promise<GitCommitResult>
   openExternal: (payload: ExternalOpenPayload) => Promise<boolean>
+  updateTrayState: (payload: TrayStatePayload) => Promise<boolean>
+  onTrayAction: (listener: (action: TrayAction) => void) => () => void
 }
 
 declare global {
