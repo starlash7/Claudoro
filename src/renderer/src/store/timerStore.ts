@@ -15,8 +15,11 @@ interface TimerState {
   completedPomodoros: number
   mascotState: MascotState
   goal: string
+  isCommitPromptOpen: boolean
   setMode: (mode: TimerMode) => void
   setGoal: (goal: string) => void
+  openCommitPrompt: () => void
+  closeCommitPrompt: () => void
   start: () => void
   pause: () => void
   reset: () => void
@@ -48,6 +51,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   completedPomodoros: 0,
   mascotState: 'idle',
   goal: '',
+  isCommitPromptOpen: false,
 
   setMode: (mode) => {
     const modeDuration = getModeDuration(mode)
@@ -63,6 +67,14 @@ export const useTimerStore = create<TimerState>((set, get) => ({
 
   setGoal: (goal) => {
     set({ goal })
+  },
+
+  openCommitPrompt: () => {
+    set({ isCommitPromptOpen: true })
+  },
+
+  closeCommitPrompt: () => {
+    set({ isCommitPromptOpen: false })
   },
 
   start: () => {

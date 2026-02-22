@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { TIMER_DURATIONS, type TimerMode } from '../../../shared/constants'
+import { useSettingsStore } from '../store/settingsStore'
 import { useTimerStore } from '../store/timerStore'
 import { useStats } from './useStats'
 
@@ -30,6 +31,7 @@ export const useTimer = (): void => {
   const timeRemaining = useTimerStore((state) => state.timeRemaining)
   const tick = useTimerStore((state) => state.tick)
   const completeSession = useTimerStore((state) => state.completeSession)
+  const openCommitPrompt = useTimerStore((state) => state.openCommitPrompt)
   const recordPomodoroSession = useStats().recordPomodoroSession
   const completionGuard = useRef(false)
 
@@ -71,6 +73,12 @@ export const useTimer = (): void => {
 
     if (mode === 'pomodoro') {
       recordPomodoroSession(TIMER_DURATIONS.pomodoro)
+
+      const { isGitHubEnabled, localRepoPath } = useSettingsStore.getState()
+
+      if (isGitHubEnabled && localRepoPath.trim()) {
+        openCommitPrompt()
+      }
     }
 
     window.electronAPI.showNotification(getNotificationMessage(mode)).catch(() => {
@@ -78,5 +86,5 @@ export const useTimer = (): void => {
     })
 
     completeSession()
-  }, [status, mode, timeRemaining, recordPomodoroSession, completeSession])
+  }, [status, mode, timeRemaining, recordPomodoroSession, completeSession, openCommitPrompt])
 }

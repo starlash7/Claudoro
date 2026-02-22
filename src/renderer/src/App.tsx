@@ -6,6 +6,9 @@ import CircularProgress from './components/Timer/CircularProgress'
 import TimerDisplay from './components/Timer/TimerDisplay'
 import Controls from './components/Controls/Controls'
 import Stats from './components/Stats/Stats'
+import CommitMessageModal from './components/GitHub/CommitMessageModal'
+import GitHubWidget from './components/GitHub/GitHubWidget'
+import MediaLauncher from './components/Media/MediaLauncher'
 import { useTimerStore } from './store/timerStore'
 import { useTimer } from './hooks/useTimer'
 
@@ -33,7 +36,11 @@ function App(): React.JSX.Element {
 
         <Controls />
         <Stats />
+        <MediaLauncher />
+        <GitHubWidget />
       </main>
+
+      <CommitMessageModal />
     </div>
   )
 }
