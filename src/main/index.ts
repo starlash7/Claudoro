@@ -9,14 +9,12 @@ let mainWindow: BrowserWindow | null = null
 
 const createWindow = (): BrowserWindow => {
   const window = new BrowserWindow({
-    width: 420,
-    height: 680,
+    width: 520,
+    height: 760,
     minWidth: 420,
-    maxWidth: 420,
     minHeight: 680,
-    maxHeight: 680,
     frame: false,
-    resizable: false,
+    resizable: true,
     show: false,
     autoHideMenuBar: true,
     webPreferences: {

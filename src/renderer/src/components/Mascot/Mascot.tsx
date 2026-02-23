@@ -42,15 +42,17 @@ export default function Mascot(): React.JSX.Element {
         variants={mascotVariants}
         viewBox="0 0 64 64"
       >
-        <rect fill="#d57958" height="20" width="40" x="12" y="8" />
-        <rect fill="#d57958" height="8" width="56" x="4" y="28" />
-        <rect fill="#d57958" height="4" width="1" x="3" y="30" />
-        <rect fill="#d57958" height="4" width="1" x="60" y="30" />
+        <rect fill="#d57958" height="14" width="46" x="9" y="8" />
+        <rect fill="#d57958" height="5" width="54" x="5" y="22" />
+        <rect fill="#d57958" height="3" width="1" x="4" y="23" />
+        <rect fill="#d57958" height="3" width="1" x="59" y="23" />
 
-        <rect fill="#d57958" height="10" width="4" x="14" y="36" />
-        <rect fill="#d57958" height="10" width="4" x="24" y="36" />
-        <rect fill="#d57958" height="10" width="4" x="36" y="36" />
-        <rect fill="#d57958" height="10" width="4" x="46" y="36" />
+        <rect fill="#d57958" height="11" width="46" x="9" y="27" />
+
+        <rect fill="#d57958" height="7" width="4" x="14" y="38" />
+        <rect fill="#d57958" height="7" width="4" x="24" y="38" />
+        <rect fill="#d57958" height="7" width="4" x="36" y="38" />
+        <rect fill="#d57958" height="7" width="4" x="46" y="38" />
 
         {isBreak ? (
           <>
