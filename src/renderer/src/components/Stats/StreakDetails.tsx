@@ -1,9 +1,6 @@
-import { X } from 'lucide-react'
 import type { DailyStat } from '../../hooks/useStats'
 
 interface StreakDetailsProps {
-  isOpen: boolean
-  onClose: () => void
   dailyStats: DailyStat[]
   currentStreak: number
   longestStreak: number
@@ -11,9 +8,12 @@ interface StreakDetailsProps {
 
 interface CellData {
   dateKey: string
-  dayOfMonth: string
   focusMinutes: number
+  isFuture: boolean
 }
+
+const WEEKS_TO_SHOW = 52
+const DAYS_TO_SHOW = WEEKS_TO_SHOW * 7
 
 const dateKey = (date: Date): string => {
   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
@@ -23,101 +23,147 @@ const dateKey = (date: Date): string => {
 const buildCells = (dailyStats: DailyStat[]): CellData[] => {
   const statMap = new Map(dailyStats.map((stat) => [stat.date, stat]))
   const today = new Date()
+  const todayKey = dateKey(today)
+  const endOfWeek = new Date(today)
+  endOfWeek.setDate(today.getDate() + (6 - today.getDay()))
 
-  return Array.from({ length: 30 }, (_, index) => {
-    const target = new Date(today)
-    target.setDate(today.getDate() - (29 - index))
+  return Array.from({ length: DAYS_TO_SHOW }, (_, index) => {
+    const target = new Date(endOfWeek)
+    target.setDate(endOfWeek.getDate() - (DAYS_TO_SHOW - 1 - index))
 
     const key = dateKey(target)
     const stat = statMap.get(key)
 
     return {
       dateKey: key,
-      dayOfMonth: key.slice(-2),
-      focusMinutes: stat?.focusMinutes ?? 0
+      focusMinutes: stat?.focusMinutes ?? 0,
+      isFuture: key > todayKey
     }
+  })
+}
+
+const buildWeekColumns = (cells: CellData[]): CellData[][] => {
+  const columns: CellData[][] = []
+
+  for (let index = 0; index < cells.length; index += 7) {
+    columns.push(cells.slice(index, index + 7))
+  }
+
+  return columns
+}
+
+const buildMonthLabels = (weekColumns: CellData[][]): string[] => {
+  let lastMonth = -1
+
+  return weekColumns.map((week) => {
+    const date = new Date(`${week[0].dateKey}T00:00:00`)
+    const month = date.getMonth()
+
+    if (month !== lastMonth) {
+      lastMonth = month
+      return date.toLocaleString('en-US', { month: 'short' })
+    }
+
+    return ''
   })
 }
 
 const getHeatColor = (focusMinutes: number): string => {
   if (focusMinutes <= 0) {
-    return 'rgba(255, 255, 255, 0.06)'
+    return '#fff4ef'
   }
 
-  if (focusMinutes < 30) {
-    return 'rgba(94, 234, 212, 0.35)'
+  if (focusMinutes < 20) {
+    return '#f8d7ca'
   }
 
-  if (focusMinutes < 60) {
-    return 'rgba(52, 211, 153, 0.55)'
+  if (focusMinutes < 45) {
+    return '#f0b59f'
   }
 
-  if (focusMinutes < 120) {
-    return 'rgba(16, 185, 129, 0.75)'
+  if (focusMinutes < 90) {
+    return '#e28d71'
   }
 
-  return 'rgba(5, 150, 105, 0.92)'
+  return '#d97757'
 }
 
 export default function StreakDetails({
-  isOpen,
-  onClose,
   dailyStats,
   currentStreak,
   longestStreak
-}: StreakDetailsProps): React.JSX.Element | null {
-  if (!isOpen) {
-    return null
-  }
-
+}: StreakDetailsProps): React.JSX.Element {
   const cells = buildCells(dailyStats)
+  const weekColumns = buildWeekColumns(cells)
+  const monthLabels = buildMonthLabels(weekColumns)
+  const totalFocusMinutes = cells.reduce((sum, cell) => sum + cell.focusMinutes, 0)
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/55 px-4 py-6 backdrop-blur-sm">
-      <section className="w-full max-w-lg rounded-2xl border border-white/15 bg-[#101327] p-4 shadow-2xl shadow-black/40">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-white/75">
-            30일 스트릭 상세
-          </h2>
-          <button
-            className="rounded-lg p-1.5 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-            onClick={onClose}
-            type="button"
-          >
-            <X size={16} />
-          </button>
+    <section className="terminal-card p-3">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h2 className="terminal-section-title">Focus Heatmap</h2>
+        <div className="flex items-center gap-2 text-[11px] text-[var(--terminal-dim)]">
+          <span>{currentStreak}d</span>
+          <span>·</span>
+          <span>Best {longestStreak}d</span>
+        </div>
+      </div>
+
+      <div className="terminal-soft-card overflow-x-auto p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+        <div className="mb-2 flex min-w-max gap-1 pl-5 text-[10px] text-[var(--terminal-dim)]">
+          {monthLabels.map((label, index) => (
+            <div className="w-3" key={`month-${index}`}>
+              {label}
+            </div>
+          ))}
         </div>
 
-        <div className="mb-3 grid grid-cols-2 gap-2">
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-2.5">
-            <p className="text-[11px] uppercase tracking-[0.1em] text-white/55">현재 스트릭</p>
-            <p className="mt-1 text-xl font-bold text-white">{currentStreak}일</p>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-2.5">
-            <p className="text-[11px] uppercase tracking-[0.1em] text-white/55">최장 스트릭</p>
-            <p className="mt-1 text-xl font-bold text-white">{longestStreak}일</p>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-white/10 bg-[#0c1022] p-3">
-          <div className="grid grid-cols-10 gap-1.5">
-            {cells.map((cell) => (
-              <div
-                className="flex h-8 items-center justify-center rounded-md text-[10px] font-semibold text-white/70"
-                key={cell.dateKey}
-                style={{ backgroundColor: getHeatColor(cell.focusMinutes) }}
-                title={`${cell.dateKey} · ${cell.focusMinutes}m`}
-              >
-                {cell.dayOfMonth}
-              </div>
+        <div className="flex min-w-max gap-2">
+          <div className="grid grid-rows-7 gap-1 text-[10px] text-[var(--terminal-dim)]">
+            {['', 'Mon', '', 'Wed', '', 'Fri', ''].map((label, index) => (
+              <span className="h-2.5 leading-[10px]" key={`day-${index}`}>
+                {label}
+              </span>
             ))}
           </div>
 
-          <p className="mt-2 text-[11px] text-white/45">
-            색이 진할수록 해당 날짜의 집중 시간이 길었습니다.
-          </p>
+          <div className="flex gap-1">
+            {weekColumns.map((week, weekIndex) => (
+              <div className="grid grid-rows-7 gap-1" key={`week-${weekIndex}`}>
+                {week.map((cell) => (
+                  <div
+                    className="h-2.5 w-2.5 rounded-[2px] border border-[rgba(217,119,87,0.18)]"
+                    key={cell.dateKey}
+                    style={{
+                      backgroundColor: cell.isFuture
+                        ? 'rgba(217,119,87,0.04)'
+                        : getHeatColor(cell.focusMinutes)
+                    }}
+                    title={`${cell.dateKey} · ${cell.focusMinutes}m`}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
-      </section>
-    </div>
+
+        <div className="mt-3 flex items-center justify-between gap-2 text-[10px] text-[var(--terminal-dim)]">
+          <p>
+            {totalFocusMinutes} minutes focused in the last {WEEKS_TO_SHOW} weeks
+          </p>
+          <div className="flex items-center gap-1">
+            <span>Less</span>
+            {[0, 20, 45, 90].map((value) => (
+              <div
+                className="h-2.5 w-2.5 rounded-[2px] border border-[rgba(217,119,87,0.18)]"
+                key={value}
+                style={{ backgroundColor: getHeatColor(value) }}
+              />
+            ))}
+            <span>More</span>
+          </div>
+        </div>
+      </div>
+    </section>
   )
 }

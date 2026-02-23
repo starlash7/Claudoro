@@ -37,11 +37,11 @@ const getTrayTitle = (): string => {
 }
 
 const buildContextMenu = ({ onOpen, onToggleTimer, onQuit }: CreateAppTrayOptions): Menu => {
-  const toggleLabel = trayState.status === 'running' ? '일시정지' : '재개'
+  const toggleLabel = trayState.status === 'running' ? 'Pause Timer' : 'Resume Timer'
 
   return Menu.buildFromTemplate([
     {
-      label: 'Claudoro 열기',
+      label: 'Open Claudoro',
       click: onOpen
     },
     {
@@ -52,7 +52,7 @@ const buildContextMenu = ({ onOpen, onToggleTimer, onQuit }: CreateAppTrayOption
       type: 'separator'
     },
     {
-      label: '종료',
+      label: 'Quit',
       click: onQuit
     }
   ])

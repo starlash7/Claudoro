@@ -23,30 +23,27 @@ export default function GoalInput(): React.JSX.Element {
   }, [setGoal])
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
-      <label
-        className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-white/65"
-        htmlFor="goal-input"
-      >
-        오늘의 목표
+    <div className="terminal-card p-3">
+      <label className="terminal-kicker mb-2 block" htmlFor="goal-input">
+        Today's Goal
       </label>
       <input
-        className="w-full rounded-xl border border-white/12 bg-[#11142a] px-3 py-2 text-sm text-white outline-none transition-colors placeholder:text-white/35 focus:border-[var(--accent)]"
+        className="terminal-input w-full px-3 py-2 text-sm outline-none transition-colors placeholder:text-[var(--terminal-dim)]"
         id="goal-input"
         onChange={(event) => {
           const nextGoal = event.target.value
           setGoal(nextGoal)
           localStorage.setItem(getTodayKey(), nextGoal)
         }}
-        placeholder="예: 클라우드 API 에러 처리 구현"
+        placeholder="e.g. finish API error handling"
         readOnly={status === 'running'}
         type="text"
         value={goal}
       />
-      <p className="mt-2 text-[11px] text-white/45">
+      <p className="mt-2 text-[11px] text-[var(--terminal-dim)]">
         {status === 'running'
-          ? '집중 중에는 목표를 잠시 고정합니다.'
-          : '세션 시작 전 목표를 명확히 적어두세요.'}
+          ? 'Goal is locked while the timer is running.'
+          : 'Keep it short, like a command before starting your session.'}
       </p>
     </div>
   )

@@ -100,7 +100,7 @@ const fetchGitHubJSON = async <T>(url: string, token: string): Promise<T> => {
 
   if (!response.ok) {
     const message = await response.text()
-    throw new Error(message || `GitHub API 요청 실패 (${response.status})`)
+    throw new Error(message || `GitHub API request failed (${response.status})`)
   }
 
   return (await response.json()) as T
@@ -225,9 +225,7 @@ export const useGitHub = (): UseGitHubResult => {
       setLastUpdated(Date.now())
     } catch (requestError) {
       const message =
-        requestError instanceof Error
-          ? requestError.message
-          : 'GitHub 데이터를 불러오지 못했습니다.'
+        requestError instanceof Error ? requestError.message : 'Failed to load GitHub data.'
       setError(message)
     } finally {
       setLoading(false)

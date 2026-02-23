@@ -39,7 +39,7 @@ export const registerIpcHandlers = ({
       return false
     }
 
-    // Tray를 사용하는 동안 앱을 유지하기 위해 창을 숨깁니다.
+    // Hide the window instead of quitting so tray mode keeps the app alive.
     mainWindow.hide()
     return true
   })
@@ -106,14 +106,14 @@ export const registerIpcHandlers = ({
       if (!repoPath) {
         return {
           success: false,
-          message: '로컬 저장소 경로가 비어 있습니다.'
+          message: 'Local repository path is empty.'
         }
       }
 
       if (!message) {
         return {
           success: false,
-          message: '커밋 메시지를 입력해 주세요.'
+          message: 'Please enter a commit message.'
         }
       }
 
@@ -128,7 +128,7 @@ export const registerIpcHandlers = ({
 
         return {
           success: true,
-          message: '커밋이 완료되었습니다.',
+          message: 'Commit completed.',
           stdout,
           stderr
         }
@@ -136,7 +136,7 @@ export const registerIpcHandlers = ({
         const failed = error as { stdout?: string; stderr?: string; message?: string }
         return {
           success: false,
-          message: failed.stderr?.trim() || failed.message || '커밋 실행에 실패했습니다.',
+          message: failed.stderr?.trim() || failed.message || 'Commit failed.',
           stdout: failed.stdout,
           stderr: failed.stderr
         }

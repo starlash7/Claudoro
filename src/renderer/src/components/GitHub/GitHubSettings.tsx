@@ -67,14 +67,14 @@ export default function GitHubSettings({
     if (!trimmedToken) {
       setConnectionState({
         status: 'error',
-        message: '토큰을 먼저 입력해 주세요.'
+        message: 'Please enter a token first.'
       })
       return
     }
 
     setConnectionState({
       status: 'loading',
-      message: 'GitHub 연결 테스트 중...'
+      message: 'Testing GitHub connection...'
     })
 
     try {
@@ -87,7 +87,7 @@ export default function GitHubSettings({
 
       if (!response.ok) {
         const raw = await response.text()
-        throw new Error(raw || `연결 실패 (${response.status})`)
+        throw new Error(raw || `Connection failed (${response.status})`)
       }
 
       const profile = (await response.json()) as { login?: string }
@@ -98,12 +98,12 @@ export default function GitHubSettings({
 
       setConnectionState({
         status: 'success',
-        message: `연결 성공: ${profile.login ?? 'GitHub 사용자'}`
+        message: `Connected: ${profile.login ?? 'GitHub user'}`
       })
     } catch (error) {
       setConnectionState({
         status: 'error',
-        message: error instanceof Error ? error.message : '연결 테스트에 실패했습니다.'
+        message: error instanceof Error ? error.message : 'Connection test failed.'
       })
     }
   }
@@ -121,26 +121,20 @@ export default function GitHubSettings({
   const canSave = Boolean(token.trim() && username.trim() && repo.trim())
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl border border-white/15 bg-[#111327] p-4 shadow-2xl shadow-black/40">
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-[rgba(250,245,240,0.8)] px-4 py-6 backdrop-blur-sm">
+      <div className="terminal-modal w-full max-w-md p-4">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-white/75">
-            GitHub 연결 설정
-          </h2>
-          <button
-            className="rounded-lg p-1.5 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-            onClick={onClose}
-            type="button"
-          >
+          <h2 className="terminal-section-title">GitHub Settings</h2>
+          <button className="terminal-icon-btn p-1.5" onClick={onClose} type="button">
             <X size={16} />
           </button>
         </div>
 
         <div className="space-y-3">
-          <label className="block text-xs text-white/70" htmlFor="github-token">
+          <label className="block text-xs text-[var(--terminal-muted)]" htmlFor="github-token">
             Token
             <input
-              className="mt-1 w-full rounded-xl border border-white/12 bg-[#0b0e1f] px-3 py-2 text-sm text-white outline-none transition-colors focus:border-[var(--accent)]"
+              className="terminal-input mt-1 w-full px-3 py-2 text-sm outline-none transition-colors"
               id="github-token"
               onChange={(event) => {
                 setToken(event.target.value)
@@ -151,10 +145,10 @@ export default function GitHubSettings({
             />
           </label>
 
-          <label className="block text-xs text-white/70" htmlFor="github-username">
+          <label className="block text-xs text-[var(--terminal-muted)]" htmlFor="github-username">
             Username
             <input
-              className="mt-1 w-full rounded-xl border border-white/12 bg-[#0b0e1f] px-3 py-2 text-sm text-white outline-none transition-colors focus:border-[var(--accent)]"
+              className="terminal-input mt-1 w-full px-3 py-2 text-sm outline-none transition-colors"
               id="github-username"
               onChange={(event) => {
                 setUsername(event.target.value)
@@ -165,10 +159,10 @@ export default function GitHubSettings({
             />
           </label>
 
-          <label className="block text-xs text-white/70" htmlFor="github-repo">
+          <label className="block text-xs text-[var(--terminal-muted)]" htmlFor="github-repo">
             Repository
             <input
-              className="mt-1 w-full rounded-xl border border-white/12 bg-[#0b0e1f] px-3 py-2 text-sm text-white outline-none transition-colors focus:border-[var(--accent)]"
+              className="terminal-input mt-1 w-full px-3 py-2 text-sm outline-none transition-colors"
               id="github-repo"
               onChange={(event) => {
                 setRepo(event.target.value)
@@ -179,11 +173,11 @@ export default function GitHubSettings({
             />
           </label>
 
-          <label className="block text-xs text-white/70" htmlFor="github-local-path">
+          <label className="block text-xs text-[var(--terminal-muted)]" htmlFor="github-local-path">
             Local Repository Path
             <div className="mt-1 flex gap-2">
               <input
-                className="w-full rounded-xl border border-white/12 bg-[#0b0e1f] px-3 py-2 text-sm text-white outline-none transition-colors focus:border-[var(--accent)]"
+                className="terminal-input w-full px-3 py-2 text-sm outline-none transition-colors"
                 id="github-local-path"
                 onChange={(event) => {
                   setRepoPath(event.target.value)
@@ -193,11 +187,11 @@ export default function GitHubSettings({
                 value={repoPath}
               />
               <button
-                className="rounded-xl border border-white/15 bg-white/5 px-3 text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+                className="terminal-icon-btn px-3"
                 onClick={() => {
                   void handlePickDirectory()
                 }}
-                title="폴더 선택"
+                title="Select folder"
                 type="button"
               >
                 <FolderOpen size={16} />
@@ -206,15 +200,15 @@ export default function GitHubSettings({
           </label>
         </div>
 
-        <div className="mt-3 h-5 text-xs">
+        <div className="mt-3 min-h-5 text-xs">
           {connectionState.message ? (
             <p
               className={
                 connectionState.status === 'success'
-                  ? 'text-emerald-300'
+                  ? 'text-[var(--accent-strong)]'
                   : connectionState.status === 'error'
-                    ? 'text-rose-300'
-                    : 'text-white/60'
+                    ? 'text-[var(--accent-strong)]'
+                    : 'text-[var(--terminal-muted)]'
               }
             >
               {connectionState.message}
@@ -224,24 +218,24 @@ export default function GitHubSettings({
 
         <div className="mt-2 flex items-center justify-end gap-2">
           <button
-            className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+            className="terminal-btn terminal-btn-secondary"
             onClick={() => {
               void handleConnectionTest()
             }}
             type="button"
           >
             <span className="flex items-center gap-1.5">
-              <TestTubeDiagonal size={14} /> 연결 테스트
+              <TestTubeDiagonal size={14} /> Test Connection
             </span>
           </button>
 
           <button
-            className="rounded-xl bg-[var(--accent)] px-3 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            className="terminal-btn terminal-btn-primary"
             disabled={!canSave || connectionState.status === 'loading'}
             onClick={handleSave}
             type="button"
           >
-            저장
+            Save
           </button>
         </div>
       </div>

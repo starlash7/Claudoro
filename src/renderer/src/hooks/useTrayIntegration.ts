@@ -14,7 +14,7 @@ export const useTrayIntegration = (): void => {
         timeRemaining
       })
       .catch(() => {
-        // noop - tray가 없는 환경에서도 동작하도록 무시
+        // noop - ignore failures when tray integration is unavailable
       })
   }, [mode, status, timeRemaining])
 

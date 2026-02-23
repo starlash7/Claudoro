@@ -6,9 +6,9 @@ import GitHubSettings from './GitHubSettings'
 
 function MiniCard({ label, value }: { label: string; value: string }): React.JSX.Element {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-2.5">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-white/50">{label}</p>
-      <p className="mt-1 text-lg font-bold text-white">{value}</p>
+    <div className="terminal-soft-card p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+      <p className="terminal-kicker">{label}</p>
+      <p className="mt-1 text-lg font-bold text-[var(--terminal-text)]">{value}</p>
     </div>
   )
 }
@@ -24,14 +24,14 @@ export default function GitHubWidget(): React.JSX.Element {
   const contributionCells = useMemo(
     () =>
       metrics.weeklyContributions.map((count, index) => {
-        const opacity = count === 0 ? 0.15 : Math.min(0.95, 0.25 + count * 0.15)
+        const opacity = count === 0 ? 0.14 : Math.min(0.94, 0.26 + count * 0.14)
 
         return (
           <div
-            className="h-5 w-5 rounded-md border border-white/10"
+            className="h-5 w-5 rounded-md border border-[var(--terminal-border-soft)]"
             key={`contrib-${index}`}
             style={{
-              backgroundColor: `rgba(62, 207, 142, ${opacity})`
+              backgroundColor: `rgba(217, 119, 87, ${opacity})`
             }}
             title={`${count} commits`}
           />
@@ -41,31 +41,31 @@ export default function GitHubWidget(): React.JSX.Element {
   )
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+    <section className="terminal-card p-3">
       <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm font-semibold text-white/85">
+        <div className="terminal-section-title">
           <Github size={16} />
-          {isGitHubEnabled ? `${githubUsername}/${githubRepo}` : 'GitHub 위젯'}
+          {isGitHubEnabled ? `${githubUsername}/${githubRepo}` : 'GitHub Integration'}
         </div>
         <div className="flex items-center gap-1">
           {isGitHubEnabled ? (
             <button
-              className="rounded-lg p-1.5 text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+              className="terminal-icon-btn p-1.5"
               onClick={() => {
                 void refresh()
               }}
-              title="새로고침"
+              title="Refresh"
               type="button"
             >
               <RefreshCw size={14} />
             </button>
           ) : null}
           <button
-            className="rounded-lg p-1.5 text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+            className="terminal-icon-btn p-1.5"
             onClick={() => {
               setIsSettingsOpen(true)
             }}
-            title="설정"
+            title="Settings"
             type="button"
           >
             <Settings size={14} />
@@ -74,39 +74,37 @@ export default function GitHubWidget(): React.JSX.Element {
       </div>
 
       {!isGitHubEnabled ? (
-        <div className="rounded-xl border border-dashed border-white/15 bg-[#0f1225] p-3">
-          <p className="text-sm text-white/70">
-            GitHub를 연결하면 오늘 커밋/PR/이슈를 바로 볼 수 있습니다.
+        <div className="terminal-soft-card border-dashed p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+          <p className="text-sm text-[var(--terminal-muted)]">
+            Connect GitHub to view today's commits, PRs, and issues.
           </p>
           <button
-            className="mt-3 rounded-xl bg-[var(--accent)] px-3 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+            className="terminal-btn terminal-btn-primary mt-3"
             onClick={() => {
               setIsSettingsOpen(true)
             }}
             type="button"
           >
-            GitHub 연결하기
+            Connect GitHub
           </button>
         </div>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-2">
-            <MiniCard label="오늘 커밋" value={`${metrics.todayCommits}`} />
-            <MiniCard label="열린 PR" value={`${metrics.openPRs}`} />
-            <MiniCard label="열린 이슈" value={`${metrics.openIssues}`} />
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-2.5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-white/50">
-                주간 활동
-              </p>
+            <MiniCard label="Today Commits" value={`${metrics.todayCommits}`} />
+            <MiniCard label="Open PRs" value={`${metrics.openPRs}`} />
+            <MiniCard label="Open Issues" value={`${metrics.openIssues}`} />
+            <div className="terminal-soft-card p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+              <p className="terminal-kicker">Weekly Activity</p>
               <div className="mt-1.5 grid grid-cols-7 gap-1">{contributionCells}</div>
             </div>
           </div>
 
-          <div className="mt-2 min-h-5 text-xs text-white/55">
-            {loading ? <p>GitHub 데이터 동기화 중...</p> : null}
-            {!loading && error ? <p className="text-rose-300">{error}</p> : null}
+          <div className="mt-2 min-h-5 text-xs text-[var(--terminal-muted)]">
+            {loading ? <p>Syncing GitHub data...</p> : null}
+            {!loading && error ? <p className="text-[var(--accent-strong)]">{error}</p> : null}
             {!loading && !error && lastUpdated ? (
-              <p>마지막 갱신: {new Date(lastUpdated).toLocaleTimeString()}</p>
+              <p>Last updated: {new Date(lastUpdated).toLocaleTimeString()}</p>
             ) : null}
           </div>
         </>

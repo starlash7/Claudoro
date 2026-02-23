@@ -8,33 +8,30 @@ const formatTime = (seconds: number): string => {
   return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`
 }
 
-const modeTitles = {
-  pomodoro: '집중 시간',
-  shortBreak: '짧은 휴식',
-  longBreak: '긴 휴식',
-  deepFocus: 'Deep Focus'
+const statusLabel = {
+  running: 'Running',
+  paused: 'Paused',
+  idle: 'Ready'
 } as const
 
 export default function TimerDisplay(): React.JSX.Element {
-  const mode = useTimerStore((state) => state.mode)
   const timeRemaining = useTimerStore((state) => state.timeRemaining)
   const status = useTimerStore((state) => state.status)
   const { cycleLabel, nextModeLabel } = usePomodoro()
 
   return (
-    <div className="flex flex-col items-center gap-1 text-center">
-      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/55">
-        {modeTitles[mode]}
+    <div className="terminal-hud-readout flex w-full max-w-[220px] flex-col items-center gap-1.5 text-center">
+      <div className="terminal-time-box mt-1 w-full px-3 py-2 sm:px-4 sm:py-2.5">
+        <p className="terminal-time-text text-4xl font-bold leading-none sm:text-5xl">
+          {formatTime(timeRemaining)}
+        </p>
+      </div>
+      <p className="mt-1 whitespace-nowrap text-[10px] tracking-[0.05em] text-[var(--terminal-dim)] sm:text-[11px]">
+        Cycle {cycleLabel} · Next {nextModeLabel}
       </p>
-      <p className="font-mono text-6xl font-bold leading-none tracking-tight text-white">
-        {formatTime(timeRemaining)}
-      </p>
-      <p className="text-xs text-white/60">
-        사이클 {cycleLabel} · 다음 {nextModeLabel}
-      </p>
-      <p className="text-xs text-white/45">
-        {status === 'running' ? 'Running' : status === 'paused' ? 'Paused' : 'Ready'}
-      </p>
+      <span className="mt-1 inline-flex items-center rounded-full border border-[rgba(217,119,87,0.3)] bg-[rgba(217,119,87,0.1)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--accent-strong)]">
+        {statusLabel[status]}
+      </span>
     </div>
   )
 }

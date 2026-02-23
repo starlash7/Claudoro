@@ -26,24 +26,24 @@ export default function MediaLauncher(): React.JSX.Element {
     const success = await window.electronAPI.openExternal({ url })
 
     if (!success) {
-      setStatus(`열기 실패: ${label}`)
+      setStatus(`Failed to open: ${label}`)
       return
     }
 
-    setStatus(`열림: ${label}`)
+    setStatus(`Opened: ${label}`)
   }
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
-      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-white/85">
+    <section className="terminal-card p-3">
+      <div className="terminal-section-title mb-2">
         <Music4 size={16} />
-        Spotify / YouTube
+        Music
       </div>
 
       <div className="grid grid-cols-2 gap-2">
         {quickLinks.map((item) => (
           <button
-            className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-left text-xs font-semibold text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+            className="terminal-btn terminal-btn-secondary px-3 py-2 text-left"
             key={item.id}
             onClick={() => {
               void handleOpenLink(item.url, item.label)
@@ -58,13 +58,11 @@ export default function MediaLauncher(): React.JSX.Element {
         ))}
       </div>
 
-      <div className="mt-3 rounded-xl border border-white/10 bg-[#0f1225] p-2.5">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-white/50">
-          Custom URL
-        </p>
+      <div className="terminal-soft-card mt-3 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+        <p className="terminal-kicker">Custom URL</p>
         <div className="mt-2 flex gap-2">
           <input
-            className="w-full rounded-lg border border-white/12 bg-[#0b0e1f] px-2.5 py-2 text-xs text-white outline-none transition-colors placeholder:text-white/35 focus:border-[var(--accent)]"
+            className="terminal-input w-full px-2.5 py-2 text-xs outline-none transition-colors placeholder:text-[var(--terminal-dim)]"
             onChange={(event) => {
               const value = event.target.value
               setCustomUrl(value)
@@ -75,7 +73,7 @@ export default function MediaLauncher(): React.JSX.Element {
             value={customUrl}
           />
           <button
-            className="rounded-lg bg-[var(--accent)] px-3 text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
+            className="terminal-btn terminal-btn-primary px-3"
             disabled={!customUrl.trim()}
             onClick={() => {
               void handleOpenLink(customUrl, 'Custom URL')
@@ -87,7 +85,7 @@ export default function MediaLauncher(): React.JSX.Element {
         </div>
       </div>
 
-      <div className="mt-2 min-h-4 text-[11px] text-white/55">{status}</div>
+      <div className="mt-2 min-h-4 text-[11px] text-[var(--terminal-muted)]">{status}</div>
     </section>
   )
 }

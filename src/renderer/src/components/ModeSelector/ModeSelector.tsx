@@ -2,7 +2,7 @@ import { TIMER_MODES, type TimerMode } from '../../../../shared/constants'
 import { useTimerStore } from '../../store/timerStore'
 
 const modeLabels: Record<TimerMode, string> = {
-  pomodoro: 'Pomodoro',
+  pomodoro: 'Focus',
   shortBreak: 'Short Break',
   longBreak: 'Long Break',
   deepFocus: 'Deep Focus'
@@ -13,16 +13,16 @@ export default function ModeSelector(): React.JSX.Element {
   const setMode = useTimerStore((state) => state.setMode)
 
   return (
-    <div className="grid grid-cols-4 gap-2 rounded-2xl border border-white/10 bg-white/5 p-2">
+    <div className="terminal-card grid grid-cols-2 gap-2 p-2 sm:grid-cols-4">
       {TIMER_MODES.map((targetMode) => {
         const isActive = targetMode === mode
 
         return (
           <button
-            className={`rounded-xl px-2 py-2 text-xs font-semibold transition-colors ${
+            className={`rounded-[9px] border px-2 py-2 text-[11px] font-semibold tracking-[0.04em] transition-colors sm:text-[12px] ${
               isActive
-                ? 'bg-[var(--accent)] text-white'
-                : 'bg-transparent text-white/70 hover:bg-white/10 hover:text-white'
+                ? 'border-[var(--accent)] bg-[rgba(217,119,87,0.14)] text-[var(--accent-strong)] shadow-[inset_0_0_0_1px_rgba(217,119,87,0.22)]'
+                : 'border-[var(--terminal-border-soft)] bg-white text-[var(--terminal-muted)] hover:border-[var(--terminal-border)] hover:bg-[rgba(217,119,87,0.07)] hover:text-[var(--terminal-text)]'
             }`}
             key={targetMode}
             onClick={() => {

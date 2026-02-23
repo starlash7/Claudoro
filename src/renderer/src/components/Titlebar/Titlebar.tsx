@@ -4,20 +4,20 @@ const isMac = window.electronAPI.platform === 'darwin'
 
 export default function Titlebar(): React.JSX.Element {
   return (
-    <header className="titlebar flex h-10 items-center justify-between border-b border-white/10 px-3">
+    <header className="titlebar flex h-11 items-center justify-between border-b border-[var(--terminal-border)] bg-[rgba(217,119,87,0.08)] px-3">
       {isMac ? (
         <div className="no-drag flex items-center gap-2">
           <button
-            aria-label="닫기"
-            className="h-3 w-3 rounded-full bg-[#ff5f57] transition-opacity hover:opacity-80"
+            aria-label="Close"
+            className="h-3 w-3 rounded-[3px] border border-[var(--accent)] bg-[var(--accent)] transition-opacity hover:opacity-80"
             onClick={() => {
               void window.electronAPI.closeWindow()
             }}
             type="button"
           />
           <button
-            aria-label="최소화"
-            className="h-3 w-3 rounded-full bg-[#febc2e] transition-opacity hover:opacity-80"
+            aria-label="Minimize"
+            className="h-3 w-3 rounded-[3px] border border-[var(--terminal-border-soft)] bg-white transition-opacity hover:opacity-80"
             onClick={() => {
               void window.electronAPI.minimizeWindow()
             }}
@@ -25,18 +25,20 @@ export default function Titlebar(): React.JSX.Element {
           />
         </div>
       ) : (
-        <div className="flex-1 text-sm font-semibold tracking-wide text-white/75">CLAUDORO</div>
+        <div className="flex-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--terminal-muted)]">
+          Session
+        </div>
       )}
 
-      <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/50">
+      <div className="text-[12px] font-semibold tracking-[0.08em] text-[var(--accent-strong)]">
         Claudoro
       </div>
 
       {!isMac ? (
         <div className="no-drag flex items-center gap-1">
           <button
-            aria-label="최소화"
-            className="rounded-md p-1.5 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+            aria-label="Minimize"
+            className="terminal-icon-btn p-1.5"
             onClick={() => {
               void window.electronAPI.minimizeWindow()
             }}
@@ -45,8 +47,8 @@ export default function Titlebar(): React.JSX.Element {
             <Minus size={14} />
           </button>
           <button
-            aria-label="닫기"
-            className="rounded-md p-1.5 text-white/70 transition-colors hover:bg-[#e94560] hover:text-white"
+            aria-label="Close"
+            className="terminal-icon-btn border-[var(--terminal-border)] p-1.5 text-[var(--accent-strong)]"
             onClick={() => {
               void window.electronAPI.closeWindow()
             }}

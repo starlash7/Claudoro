@@ -7,21 +7,21 @@ import { useStats } from './useStats'
 const getNotificationMessage = (mode: TimerMode): { title: string; body: string } => {
   if (mode === 'pomodoro') {
     return {
-      title: 'Pomodoro 완료',
-      body: '좋아요. 잠깐 쉬고 다음 집중 세션을 시작해보세요.'
+      title: 'Pomodoro Complete',
+      body: 'Take a short break, then start the next focus session.'
     }
   }
 
   if (mode === 'shortBreak' || mode === 'longBreak') {
     return {
-      title: '휴식 완료',
-      body: '다시 집중 모드로 돌아갈 시간입니다.'
+      title: 'Break Complete',
+      body: 'Time to return to focus mode.'
     }
   }
 
   return {
-    title: 'Deep Focus 종료',
-    body: '수동으로 세션을 종료했습니다.'
+    title: 'Deep Focus Ended',
+    body: 'The session was ended manually.'
   }
 }
 

@@ -26,10 +26,10 @@ export default function Controls(): React.JSX.Element {
   }
 
   return (
-    <div className="flex items-center justify-center gap-3">
+    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
       <button
-        aria-label={isRunning ? '일시정지' : '시작'}
-        className="rounded-xl bg-[var(--accent)] px-5 py-3 text-white transition-opacity hover:opacity-90"
+        aria-label={isRunning ? 'Pause' : 'Start'}
+        className="terminal-btn terminal-btn-primary px-4 sm:px-5"
         onClick={() => {
           if (isRunning) {
             pause()
@@ -40,42 +40,42 @@ export default function Controls(): React.JSX.Element {
         }}
         type="button"
       >
-        <span className="flex items-center gap-2 text-sm font-semibold">
+        <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.1em] sm:text-sm">
           {isRunning ? <Pause size={16} /> : <Play size={16} />}
           {isRunning ? 'Pause' : 'Start'}
         </span>
       </button>
 
       <button
-        aria-label="리셋"
-        className="rounded-xl border border-white/15 bg-white/5 p-3 text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+        aria-label="Reset"
+        className="terminal-icon-btn p-2.5"
         onClick={() => {
           reset()
         }}
         type="button"
       >
-        <RotateCcw size={18} />
+        <RotateCcw size={17} />
       </button>
 
       {isDeepFocus ? (
         <button
-          aria-label="세션 완료"
-          className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-emerald-200 transition-colors hover:bg-emerald-400/20"
+          aria-label="Complete session"
+          className="terminal-icon-btn border-[var(--accent)] bg-[rgba(217,119,87,0.14)] p-2.5 text-[var(--accent-strong)]"
           onClick={handleCompleteDeepFocus}
           type="button"
         >
-          <Check size={18} />
+          <Check size={17} />
         </button>
       ) : (
         <button
-          aria-label="스킵"
-          className="rounded-xl border border-white/15 bg-white/5 p-3 text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+          aria-label="Skip"
+          className="terminal-icon-btn p-2.5"
           onClick={() => {
             skipToNext()
           }}
           type="button"
         >
-          <SkipForward size={18} />
+          <SkipForward size={17} />
         </button>
       )}
     </div>
