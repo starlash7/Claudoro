@@ -1,4 +1,4 @@
-# 🍅 Claudoro — Focus Terminal for Builders
+# 🦞 Claudoro — Focus Terminal for Builders
 
 **Claudoro**
 
