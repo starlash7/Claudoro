@@ -4,10 +4,10 @@
 
 **LOCK IN. SHIP. REPEAT.**
 
-![Electron](https://img.shields.io/badge/Electron-Desktop_App-47848F?logo=electron&logoColor=white)
-![React](https://img.shields.io/badge/React-UI-61DAFB?logo=react&logoColor=111827)
-![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-Design-06B6D4?logo=tailwindcss&logoColor=white)
-![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows%20%7C%20Linux-E86C47)
+![Electron](https://img.shields.io/badge/Desktop-Electron-47848F?logo=electron&logoColor=white&labelColor=111827)
+![UI React](https://img.shields.io/badge/UI-React-61DAFB?logo=react&logoColor=111827&labelColor=111827)
+![Design TailwindCSS](https://img.shields.io/badge/Design-TailwindCSS-06B6D4?logo=tailwindcss&logoColor=white&labelColor=111827)
+![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows%20%7C%20Linux-E86C47&labelColor=111827)
 
 Claudoro is a desktop focus companion with a terminal-inspired interface, a Claude-style mascot, and practical session tracking.
 It is designed to help you stay in flow, finish more deep work, and keep momentum visible every day.

@@ -26,7 +26,7 @@ export default function TimerDisplay(): React.JSX.Element {
   return (
     <div className="terminal-hud-readout flex w-full max-w-[620px] flex-col items-center gap-3 text-center">
       <div className="terminal-time-box w-full px-3 py-4 sm:px-5 sm:py-6">
-        <p className="terminal-time-text text-[clamp(3.5rem,14vw,7rem)] font-bold leading-[0.88]">
+        <p className="terminal-time-text text-[clamp(3rem,12vw,6rem)] leading-[0.92]">
           {formatTime(timeRemaining)}
         </p>
       </div>
