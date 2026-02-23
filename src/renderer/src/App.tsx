@@ -3,14 +3,12 @@ import Titlebar from './components/Titlebar/Titlebar'
 import GoalInput from './components/GoalInput/GoalInput'
 import Mascot from './components/Mascot/Mascot'
 import ModeSelector from './components/ModeSelector/ModeSelector'
-import CircularProgress from './components/Timer/CircularProgress'
 import TimerDisplay from './components/Timer/TimerDisplay'
 import Controls from './components/Controls/Controls'
 import Stats from './components/Stats/Stats'
 import CommitMessageModal from './components/GitHub/CommitMessageModal'
 import GitHubWidget from './components/GitHub/GitHubWidget'
 import MediaLauncher from './components/Media/MediaLauncher'
-import { useTimerStore } from './store/timerStore'
 import { useTimer } from './hooks/useTimer'
 import { useTrayIntegration } from './hooks/useTrayIntegration'
 
@@ -28,9 +26,6 @@ function App(): React.JSX.Element {
   useTrayIntegration()
 
   const [activeMenu, setActiveMenu] = useState<LeftMenu>('timer')
-  const mode = useTimerStore((state) => state.mode)
-  const timeRemaining = useTimerStore((state) => state.timeRemaining)
-  const totalTime = useTimerStore((state) => state.totalTime)
 
   return (
     <div className="app-shell flex h-screen flex-col overflow-hidden border border-[var(--terminal-border)] bg-[var(--terminal-bg)] text-[var(--terminal-text)] shadow-[0_0_0_1px_rgba(217,119,87,0.12),0_16px_48px_var(--terminal-shadow)]">
@@ -39,13 +34,13 @@ function App(): React.JSX.Element {
       <main className="terminal-scroll flex-1 overflow-y-auto px-3 py-3 sm:px-5 sm:py-4">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-3">
           <aside className="terminal-tab-bar h-fit p-1.5">
-            <nav className="flex flex-wrap gap-2">
+            <nav className="grid grid-cols-4 gap-2">
               {menuItems.map((item) => {
                 const isActive = item.id === activeMenu
 
                 return (
                   <button
-                    className={`terminal-tab px-3 py-2 text-xs font-semibold tracking-[0.08em] ${
+                    className={`terminal-tab w-full px-3 py-2 text-xs font-semibold tracking-[0.08em] ${
                       isActive ? 'terminal-tab-active' : ''
                     }`}
                     key={item.id}
@@ -70,15 +65,7 @@ function App(): React.JSX.Element {
                 <ModeSelector />
 
                 <section className="terminal-hud-panel flex flex-col items-center justify-center gap-3 px-3 py-4 sm:px-4">
-                  <div className="flex items-center justify-center">
-                    <CircularProgress
-                      mode={mode}
-                      timeRemaining={timeRemaining}
-                      totalTime={totalTime}
-                    >
-                      <TimerDisplay />
-                    </CircularProgress>
-                  </div>
+                  <TimerDisplay />
                   <Controls />
                 </section>
               </section>

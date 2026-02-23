@@ -76,7 +76,7 @@ export default function GitHubWidget(): React.JSX.Element {
       {!isGitHubEnabled ? (
         <div className="terminal-soft-card border-dashed p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
           <p className="text-sm text-[var(--terminal-muted)]">
-            Connect GitHub to view today's commits, PRs, and issues.
+            Connect GitHub to view today&apos;s commits, PRs, and issues.
           </p>
           <button
             className="terminal-btn terminal-btn-primary mt-3"

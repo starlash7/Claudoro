@@ -1,3 +1,4 @@
+import GoalSection from './GoalSection'
 import { useStats } from '../../hooks/useStats'
 import StreakDetails from './StreakDetails'
 
@@ -6,11 +7,34 @@ interface StatCardProps {
   value: string
 }
 
+interface ParsedValue {
+  amount: string
+  unit: string
+}
+
+const parseValue = (value: string): ParsedValue => {
+  const match = value.trim().match(/^(\d+)([a-zA-Z]+)?$/)
+
+  if (!match) {
+    return { amount: value, unit: '' }
+  }
+
+  return {
+    amount: match[1],
+    unit: match[2] ?? ''
+  }
+}
+
 function StatCard({ label, value }: StatCardProps): React.JSX.Element {
+  const { amount, unit } = parseValue(value)
+
   return (
-    <div className="terminal-soft-card flex min-h-[92px] flex-col items-center justify-center gap-1 p-3 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
-      <p className="terminal-kicker whitespace-nowrap leading-none">{label}</p>
-      <p className="text-2xl font-bold leading-none text-[var(--terminal-text)]">{value}</p>
+    <div className="terminal-soft-card stat-card flex min-h-[96px] flex-col justify-between p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+      <p className="stat-card-label">{label}</p>
+      <p className="stat-card-value">
+        <span className="stat-card-number">{amount}</span>
+        {unit ? <span className="stat-card-unit">{unit}</span> : null}
+      </p>
     </div>
   )
 }
@@ -36,6 +60,8 @@ export default function Stats(): React.JSX.Element {
         dailyStats={dailyStats}
         longestStreak={longestStreak}
       />
+
+      <GoalSection />
     </section>
   )
 }

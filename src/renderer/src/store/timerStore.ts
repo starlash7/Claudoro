@@ -78,9 +78,15 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   },
 
   start: () => {
-    const { mode } = get()
+    const { mode, timeRemaining, totalTime } = get()
+    const modeDuration = getModeDuration(mode)
+    const isCountUpMode = mode === 'deepFocus'
+    const needsResetBeforeStart = !isCountUpMode && timeRemaining <= 0
+
     set({
       status: 'running',
+      timeRemaining: needsResetBeforeStart ? modeDuration : timeRemaining,
+      totalTime: needsResetBeforeStart || totalTime <= 0 ? modeDuration : totalTime,
       mascotState: getMascotStateForMode(mode)
     })
   },

@@ -2,7 +2,6 @@ import { POMODOROS_BEFORE_LONG_BREAK, type TimerMode } from '../../../shared/con
 import { useTimerStore } from '../store/timerStore'
 
 interface UsePomodoroResult {
-  cycleLabel: string
   nextModeLabel: string
   isBreak: boolean
   skipToNext: () => void
@@ -20,8 +19,6 @@ export const usePomodoro = (): UsePomodoroResult => {
   const completedPomodoros = useTimerStore((state) => state.completedPomodoros)
   const completeSession = useTimerStore((state) => state.completeSession)
 
-  const currentCycle = (completedPomodoros % POMODOROS_BEFORE_LONG_BREAK) + 1
-
   let nextMode: TimerMode = 'pomodoro'
 
   if (mode === 'pomodoro') {
@@ -37,7 +34,6 @@ export const usePomodoro = (): UsePomodoroResult => {
   const isBreak = mode === 'shortBreak' || mode === 'longBreak'
 
   return {
-    cycleLabel: `${currentCycle}/${POMODOROS_BEFORE_LONG_BREAK}`,
     nextModeLabel: modeLabel[nextMode],
     isBreak,
     skipToNext: completeSession

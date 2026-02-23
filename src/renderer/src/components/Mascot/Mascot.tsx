@@ -30,10 +30,10 @@ export default function Mascot(): React.JSX.Element {
   const isComplete = mascotState === 'complete'
 
   return (
-    <div className="flex items-center justify-center py-2">
+    <div className="flex items-center justify-center py-4">
       <motion.svg
         animate={mascotState}
-        className="h-[108px] w-[108px]"
+        className="h-[196px] w-[196px]"
         shapeRendering="crispEdges"
         style={{
           filter:
