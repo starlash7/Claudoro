@@ -3,6 +3,35 @@ import { ExternalLink, Music4, PlayCircle } from 'lucide-react'
 
 const CUSTOM_URL_STORAGE_KEY = 'claudoro_custom_media_url'
 
+function SpotifyLogo(): React.JSX.Element {
+  return (
+    <svg aria-hidden="true" className="h-6 w-6 shrink-0" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" fill="#1DB954" r="11" />
+      <path
+        d="M6.5 9.3c3.6-1.1 7.9-.8 11.1.9"
+        fill="none"
+        stroke="#ffffff"
+        strokeLinecap="round"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M7.4 12c3-.8 6.2-.5 8.8.8"
+        fill="none"
+        stroke="#ffffff"
+        strokeLinecap="round"
+        strokeWidth="1.4"
+      />
+      <path
+        d="M8.3 14.5c2.3-.6 4.8-.3 6.8.7"
+        fill="none"
+        stroke="#ffffff"
+        strokeLinecap="round"
+        strokeWidth="1.3"
+      />
+    </svg>
+  )
+}
+
 const quickLinks = [
   {
     id: 'spotify-app',
@@ -10,14 +39,9 @@ const quickLinks = [
     url: 'spotify:'
   },
   {
-    id: 'spotify-focus',
-    label: 'Spotify Focus Playlist',
+    id: 'spotify-playlist',
+    label: 'Spotify Playlist',
     url: 'https://open.spotify.com/genre/focus'
-  },
-  {
-    id: 'spotify-deep-focus',
-    label: 'Spotify Deep Focus',
-    url: 'https://open.spotify.com/playlist/37i9dQZF1DWZeKCadgRdKQ'
   }
 ]
 
@@ -55,9 +79,12 @@ export default function MediaLauncher(): React.JSX.Element {
             }}
             type="button"
           >
-            <span className="flex items-center justify-between gap-2">
-              {item.label}
-              <ExternalLink size={13} />
+            <span className="flex min-w-0 items-center gap-2">
+              <span className="flex min-w-0 items-center gap-2">
+                {item.id.startsWith('spotify') ? <SpotifyLogo /> : null}
+                <span className="truncate whitespace-nowrap">{item.label}</span>
+              </span>
+              <ExternalLink className="ml-auto shrink-0" size={13} />
             </span>
           </button>
         ))}
