@@ -142,6 +142,25 @@ export default function GitHubWidget(): React.JSX.Element {
         </div>
       ) : (
         <>
+          {!githubRepoVerified ? (
+            <div className="terminal-soft-card mb-2 border-dashed p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs text-[var(--terminal-muted)]">
+                  Repo access is not verified yet. Run connection test in Settings.
+                </p>
+                <button
+                  className="terminal-btn terminal-btn-secondary px-2 py-1 text-[11px]"
+                  onClick={() => {
+                    setIsSettingsOpen(true)
+                  }}
+                  type="button"
+                >
+                  Verify Now
+                </button>
+              </div>
+            </div>
+          ) : null}
+
           <div className="grid grid-cols-2 gap-2">
             <MiniCard label="Today Commits" value={`${metrics.todayCommits}`} />
             <MiniCard label="Focus / Commit" value={focusPerCommit} />

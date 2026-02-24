@@ -50,6 +50,7 @@ export default function GitHubSettings({
   const [username, setUsername] = useState('')
   const [repo, setRepo] = useState('')
   const [repoPath, setRepoPath] = useState('')
+  const [isAuthVerified, setIsAuthVerified] = useState(false)
   const [isRepoAccessVerified, setIsRepoAccessVerified] = useState(false)
   const [connectionState, setConnectionState] = useState<ConnectionState>({
     status: 'idle',
@@ -65,6 +66,7 @@ export default function GitHubSettings({
     setUsername(storedUsername)
     setRepo(storedRepo)
     setRepoPath(storedRepoPath)
+    setIsAuthVerified(storedRepoVerified)
     setIsRepoAccessVerified(storedRepoVerified)
     setConnectionState({
       status: 'idle',
@@ -119,6 +121,7 @@ export default function GitHubSettings({
 
       const profile = (await response.json()) as { login?: string }
       const resolvedUsername = trimmedUsername || profile.login || ''
+      setIsAuthVerified(true)
 
       if (!username.trim() && profile.login) {
         setUsername(profile.login)
@@ -161,6 +164,7 @@ export default function GitHubSettings({
         status: 'error',
         message: error instanceof Error ? error.message : 'Connection test failed.'
       })
+      setIsAuthVerified(false)
       setIsRepoAccessVerified(false)
     }
   }
@@ -197,6 +201,7 @@ export default function GitHubSettings({
               id="github-token"
               onChange={(event) => {
                 setToken(event.target.value)
+                setIsAuthVerified(false)
                 setIsRepoAccessVerified(false)
               }}
               placeholder="ghp_xxx"
@@ -286,7 +291,13 @@ export default function GitHubSettings({
         </div>
 
         <div className="mt-2 flex items-center justify-between gap-2">
-          <div className="h-6">
+          <div className="flex h-6 items-center gap-1.5">
+            {isAuthVerified ? (
+              <span className="inline-flex items-center gap-1 rounded border border-[var(--terminal-border)] bg-[rgba(217,119,87,0.08)] px-2 py-1 text-[11px] font-semibold tracking-[0.05em] text-[var(--terminal-text)]">
+                <CheckCircle2 size={12} />
+                Auth OK
+              </span>
+            ) : null}
             {isRepoAccessVerified ? (
               <span className="inline-flex items-center gap-1 rounded border border-[var(--accent)] bg-[rgba(217,119,87,0.12)] px-2 py-1 text-[11px] font-semibold tracking-[0.05em] text-[var(--accent-strong)]">
                 <CheckCircle2 size={12} />
