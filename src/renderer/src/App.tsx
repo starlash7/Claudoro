@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Titlebar from './components/Titlebar/Titlebar'
 import GoalInput from './components/GoalInput/GoalInput'
 import Mascot from './components/Mascot/Mascot'
@@ -11,6 +11,7 @@ import GitHubWidget from './components/GitHub/GitHubWidget'
 import MediaLauncher from './components/Media/MediaLauncher'
 import { useTimer } from './hooks/useTimer'
 import { useTrayIntegration } from './hooks/useTrayIntegration'
+import { useTimerStore } from './store/timerStore'
 
 type LeftMenu = 'timer' | 'streak' | 'music' | 'settings'
 
@@ -26,10 +27,38 @@ function App(): React.JSX.Element {
   useTrayIntegration()
 
   const [activeMenu, setActiveMenu] = useState<LeftMenu>('timer')
+  const recoveryNoticeSeconds = useTimerStore((state) => state.recoveryNoticeSeconds)
+  const clearRecoveryNotice = useTimerStore((state) => state.clearRecoveryNotice)
+
+  useEffect(() => {
+    if (!recoveryNoticeSeconds) {
+      return
+    }
+
+    const timeout = window.setTimeout(() => {
+      clearRecoveryNotice()
+    }, 3200)
+
+    return () => {
+      window.clearTimeout(timeout)
+    }
+  }, [recoveryNoticeSeconds, clearRecoveryNotice])
+
+  const recoveredMinutes = recoveryNoticeSeconds
+    ? Math.max(1, Math.round(recoveryNoticeSeconds / 60))
+    : 0
 
   return (
     <div className="app-shell flex h-screen flex-col overflow-hidden border border-[var(--terminal-border)] bg-[var(--terminal-bg)] text-[var(--terminal-text)] shadow-[0_0_0_1px_rgba(217,119,87,0.12),0_16px_48px_var(--terminal-shadow)]">
       <Titlebar />
+
+      {recoveryNoticeSeconds ? (
+        <div className="pointer-events-none fixed left-1/2 top-14 z-40 -translate-x-1/2">
+          <div className="terminal-soft-card border border-[var(--accent)] bg-[rgba(217,119,87,0.12)] px-3 py-1.5 text-xs font-semibold tracking-[0.06em] text-[var(--terminal-text)]">
+            {`Recovered after ${recoveredMinutes} min`}
+          </div>
+        </div>
+      ) : null}
 
       <main className="terminal-scroll flex-1 overflow-y-auto px-3 py-3 sm:px-5 sm:py-4">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-3">

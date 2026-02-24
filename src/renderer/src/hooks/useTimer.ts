@@ -30,10 +30,33 @@ export const useTimer = (): void => {
   const mode = useTimerStore((state) => state.mode)
   const timeRemaining = useTimerStore((state) => state.timeRemaining)
   const tick = useTimerStore((state) => state.tick)
+  const recoverElapsed = useTimerStore((state) => state.recoverElapsed)
   const completeSession = useTimerStore((state) => state.completeSession)
   const openCommitPrompt = useTimerStore((state) => state.openCommitPrompt)
   const recordPomodoroSession = useStats().recordPomodoroSession
   const completionGuard = useRef(false)
+
+  useEffect(() => {
+    recoverElapsed()
+
+    const syncElapsed = (): void => {
+      recoverElapsed()
+    }
+
+    const onVisibilityChange = (): void => {
+      if (document.visibilityState === 'visible') {
+        syncElapsed()
+      }
+    }
+
+    window.addEventListener('focus', syncElapsed)
+    document.addEventListener('visibilitychange', onVisibilityChange)
+
+    return () => {
+      window.removeEventListener('focus', syncElapsed)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
+  }, [recoverElapsed])
 
   useEffect(() => {
     if (status !== 'running') {

@@ -143,6 +143,10 @@ export default function GitHubSettings({
               type="password"
               value={token}
             />
+            <p className="mt-1 text-[11px] leading-relaxed text-[var(--terminal-dim)]">
+              Recommended PAT scopes: <code>repo</code> and <code>read:user</code> for private
+              repositories.
+            </p>
           </label>
 
           <label className="block text-xs text-[var(--terminal-muted)]" htmlFor="github-username">

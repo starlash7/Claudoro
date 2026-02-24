@@ -5,14 +5,19 @@ const CUSTOM_URL_STORAGE_KEY = 'claudoro_custom_media_url'
 
 const quickLinks = [
   {
+    id: 'spotify-app',
+    label: 'Open Spotify App',
+    url: 'spotify:'
+  },
+  {
     id: 'spotify-focus',
-    label: 'Spotify Focus',
+    label: 'Spotify Focus Playlist',
     url: 'https://open.spotify.com/genre/focus'
   },
   {
-    id: 'youtube-lofi',
-    label: 'YouTube Lo-fi',
-    url: 'https://www.youtube.com/watch?v=jfKfPfyJRdk'
+    id: 'spotify-deep-focus',
+    label: 'Spotify Deep Focus',
+    url: 'https://open.spotify.com/playlist/37i9dQZF1DWZeKCadgRdKQ'
   }
 ]
 

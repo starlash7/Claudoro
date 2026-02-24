@@ -67,8 +67,9 @@ export const registerIpcHandlers = ({
 
     try {
       const parsed = new URL(rawUrl)
+      const allowedProtocols = new Set(['https:', 'http:', 'spotify:'])
 
-      if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+      if (!allowedProtocols.has(parsed.protocol)) {
         return false
       }
 

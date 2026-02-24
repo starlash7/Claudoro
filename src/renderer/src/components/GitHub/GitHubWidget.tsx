@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Github, RefreshCw, Settings } from 'lucide-react'
 import { useGitHub } from '../../hooks/useGitHub'
+import { useStats } from '../../hooks/useStats'
 import { useSettingsStore } from '../../store/settingsStore'
 import GitHubSettings from './GitHubSettings'
 
@@ -17,9 +18,13 @@ export default function GitHubWidget(): React.JSX.Element {
   const isGitHubEnabled = useSettingsStore((state) => state.isGitHubEnabled)
   const githubUsername = useSettingsStore((state) => state.githubUsername)
   const githubRepo = useSettingsStore((state) => state.githubRepo)
+  const todayFocusMinutes = useStats().todayFocusMinutes
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  const { metrics, loading, error, lastUpdated, refresh } = useGitHub()
+  const { metrics, loading, error, errorCode, lastUpdated, refresh } = useGitHub()
+
+  const focusPerCommit =
+    metrics.todayCommits > 0 ? `${Math.round(todayFocusMinutes / metrics.todayCommits)}m` : '--'
 
   const contributionCells = useMemo(
     () =>
@@ -39,6 +44,8 @@ export default function GitHubWidget(): React.JSX.Element {
       }),
     [metrics.weeklyContributions]
   )
+
+  const canOpenSettingsFromError = errorCode === 'auth' || errorCode === 'not_found'
 
   return (
     <section className="terminal-card p-3">
@@ -92,17 +99,34 @@ export default function GitHubWidget(): React.JSX.Element {
         <>
           <div className="grid grid-cols-2 gap-2">
             <MiniCard label="Today Commits" value={`${metrics.todayCommits}`} />
+            <MiniCard label="Focus / Commit" value={focusPerCommit} />
             <MiniCard label="Open PRs" value={`${metrics.openPRs}`} />
             <MiniCard label="Open Issues" value={`${metrics.openIssues}`} />
             <div className="terminal-soft-card p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
               <p className="terminal-kicker">Weekly Activity</p>
               <div className="mt-1.5 grid grid-cols-7 gap-1">{contributionCells}</div>
             </div>
+            <MiniCard label="Today Focus" value={`${todayFocusMinutes}m`} />
           </div>
 
           <div className="mt-2 min-h-5 text-xs text-[var(--terminal-muted)]">
             {loading ? <p>Syncing GitHub data...</p> : null}
-            {!loading && error ? <p className="text-[var(--accent-strong)]">{error}</p> : null}
+            {!loading && error ? (
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[var(--accent-strong)]">{error}</p>
+                {canOpenSettingsFromError ? (
+                  <button
+                    className="terminal-btn terminal-btn-secondary px-2 py-1 text-[11px]"
+                    onClick={() => {
+                      setIsSettingsOpen(true)
+                    }}
+                    type="button"
+                  >
+                    Fix Settings
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
             {!loading && !error && lastUpdated ? (
               <p>Last updated: {new Date(lastUpdated).toLocaleTimeString()}</p>
             ) : null}
