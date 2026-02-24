@@ -9,6 +9,8 @@ export interface GitHubSettings {
   githubRepo: string
   localRepoPath: string
   isGitHubEnabled: boolean
+  githubRepoVerified: boolean
+  githubRepoVerifiedAt: number | null
 }
 
 interface SettingsState extends GitHubSettings {
@@ -26,7 +28,9 @@ const defaultSettings: GitHubSettings = {
   githubUsername: '',
   githubRepo: '',
   localRepoPath: '',
-  isGitHubEnabled: false
+  isGitHubEnabled: false,
+  githubRepoVerified: false,
+  githubRepoVerifiedAt: null
 }
 
 const getEnabledState = (settings: Partial<GitHubSettings>): boolean => {
@@ -45,7 +49,9 @@ export const useSettingsStore = create<SettingsState>()(
 
         set({
           githubToken: next.githubToken,
-          isGitHubEnabled: getEnabledState(next)
+          isGitHubEnabled: getEnabledState(next),
+          githubRepoVerified: false,
+          githubRepoVerifiedAt: null
         })
       },
       setGitHubUsername: (username) => {
@@ -56,7 +62,9 @@ export const useSettingsStore = create<SettingsState>()(
 
         set({
           githubUsername: next.githubUsername,
-          isGitHubEnabled: getEnabledState(next)
+          isGitHubEnabled: getEnabledState(next),
+          githubRepoVerified: false,
+          githubRepoVerifiedAt: null
         })
       },
       setGitHubRepo: (repo) => {
@@ -67,7 +75,9 @@ export const useSettingsStore = create<SettingsState>()(
 
         set({
           githubRepo: next.githubRepo,
-          isGitHubEnabled: getEnabledState(next)
+          isGitHubEnabled: getEnabledState(next),
+          githubRepoVerified: false,
+          githubRepoVerifiedAt: null
         })
       },
       setLocalRepoPath: (repoPath) => {
@@ -79,18 +89,41 @@ export const useSettingsStore = create<SettingsState>()(
         set({ isGitHubEnabled: enabled })
       },
       updateGitHubSettings: (settings) => {
+        const current = get()
         const next = {
-          ...get(),
+          ...current,
           ...settings,
-          githubToken: settings.githubToken?.trim() ?? get().githubToken,
-          githubUsername: settings.githubUsername?.trim() ?? get().githubUsername,
-          githubRepo: settings.githubRepo?.trim() ?? get().githubRepo,
-          localRepoPath: settings.localRepoPath?.trim() ?? get().localRepoPath
+          githubToken: settings.githubToken?.trim() ?? current.githubToken,
+          githubUsername: settings.githubUsername?.trim() ?? current.githubUsername,
+          githubRepo: settings.githubRepo?.trim() ?? current.githubRepo,
+          localRepoPath: settings.localRepoPath?.trim() ?? current.localRepoPath
+        }
+
+        const identityChanged =
+          current.githubToken !== next.githubToken ||
+          current.githubUsername !== next.githubUsername ||
+          current.githubRepo !== next.githubRepo
+
+        const hasVerificationUpdate = typeof settings.githubRepoVerified === 'boolean'
+
+        let githubRepoVerified = current.githubRepoVerified
+        let githubRepoVerifiedAt = current.githubRepoVerifiedAt
+
+        if (hasVerificationUpdate) {
+          githubRepoVerified = settings.githubRepoVerified ?? false
+          githubRepoVerifiedAt = githubRepoVerified
+            ? (settings.githubRepoVerifiedAt ?? Date.now())
+            : null
+        } else if (identityChanged) {
+          githubRepoVerified = false
+          githubRepoVerifiedAt = null
         }
 
         set({
           ...next,
-          isGitHubEnabled: getEnabledState(next)
+          isGitHubEnabled: getEnabledState(next),
+          githubRepoVerified,
+          githubRepoVerifiedAt
         })
       },
       resetGitHubSettings: () => {
@@ -104,7 +137,9 @@ export const useSettingsStore = create<SettingsState>()(
         githubUsername: state.githubUsername,
         githubRepo: state.githubRepo,
         localRepoPath: state.localRepoPath,
-        isGitHubEnabled: state.isGitHubEnabled
+        isGitHubEnabled: state.isGitHubEnabled,
+        githubRepoVerified: state.githubRepoVerified,
+        githubRepoVerifiedAt: state.githubRepoVerifiedAt
       })
     }
   )

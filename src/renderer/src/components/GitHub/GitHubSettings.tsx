@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { FolderOpen, TestTubeDiagonal, X } from 'lucide-react'
+import { CheckCircle2, FolderOpen, TestTubeDiagonal, X } from 'lucide-react'
 import { useSettingsStore } from '../../store/settingsStore'
 
 interface GitHubSettingsProps {
@@ -13,6 +13,28 @@ type ConnectionState =
   | { status: 'error'; message: string }
   | { status: 'loading'; message: string }
 
+const parseGitHubError = async (response: Response, fallback: string): Promise<string> => {
+  const contentType = response.headers.get('content-type') ?? ''
+
+  if (contentType.includes('application/json')) {
+    try {
+      const payload = (await response.json()) as { message?: string }
+      if (payload.message?.trim()) {
+        return payload.message.trim()
+      }
+    } catch {
+      // noop
+    }
+  } else {
+    const text = (await response.text()).trim()
+    if (text) {
+      return text
+    }
+  }
+
+  return fallback
+}
+
 export default function GitHubSettings({
   isOpen,
   onClose
@@ -21,12 +43,14 @@ export default function GitHubSettings({
   const storedUsername = useSettingsStore((state) => state.githubUsername)
   const storedRepo = useSettingsStore((state) => state.githubRepo)
   const storedRepoPath = useSettingsStore((state) => state.localRepoPath)
+  const storedRepoVerified = useSettingsStore((state) => state.githubRepoVerified)
   const updateGitHubSettings = useSettingsStore((state) => state.updateGitHubSettings)
 
   const [token, setToken] = useState('')
   const [username, setUsername] = useState('')
   const [repo, setRepo] = useState('')
   const [repoPath, setRepoPath] = useState('')
+  const [isRepoAccessVerified, setIsRepoAccessVerified] = useState(false)
   const [connectionState, setConnectionState] = useState<ConnectionState>({
     status: 'idle',
     message: ''
@@ -41,11 +65,12 @@ export default function GitHubSettings({
     setUsername(storedUsername)
     setRepo(storedRepo)
     setRepoPath(storedRepoPath)
+    setIsRepoAccessVerified(storedRepoVerified)
     setConnectionState({
       status: 'idle',
       message: ''
     })
-  }, [isOpen, storedToken, storedUsername, storedRepo, storedRepoPath])
+  }, [isOpen, storedToken, storedUsername, storedRepo, storedRepoPath, storedRepoVerified])
 
   if (!isOpen) {
     return null
@@ -63,6 +88,8 @@ export default function GitHubSettings({
 
   const handleConnectionTest = async (): Promise<void> => {
     const trimmedToken = token.trim()
+    const trimmedUsername = username.trim()
+    const trimmedRepo = repo.trim()
 
     if (!trimmedToken) {
       setConnectionState({
@@ -86,25 +113,55 @@ export default function GitHubSettings({
       })
 
       if (!response.ok) {
-        const raw = await response.text()
-        throw new Error(raw || `Connection failed (${response.status})`)
+        const message = await parseGitHubError(response, `Connection failed (${response.status}).`)
+        throw new Error(message)
       }
 
       const profile = (await response.json()) as { login?: string }
+      const resolvedUsername = trimmedUsername || profile.login || ''
 
       if (!username.trim() && profile.login) {
         setUsername(profile.login)
+      }
+
+      if (resolvedUsername && trimmedRepo) {
+        const repoResponse = await fetch(
+          `https://api.github.com/repos/${resolvedUsername}/${trimmedRepo}`,
+          {
+            headers: {
+              Accept: 'application/vnd.github+json',
+              Authorization: `Bearer ${trimmedToken}`
+            }
+          }
+        )
+
+        if (!repoResponse.ok) {
+          const message = await parseGitHubError(
+            repoResponse,
+            `Repository check failed (${repoResponse.status}).`
+          )
+          throw new Error(message)
+        }
+
+        setConnectionState({
+          status: 'success',
+          message: `Connected. Repo access OK: ${resolvedUsername}/${trimmedRepo}`
+        })
+        setIsRepoAccessVerified(true)
+        return
       }
 
       setConnectionState({
         status: 'success',
         message: `Connected: ${profile.login ?? 'GitHub user'}`
       })
+      setIsRepoAccessVerified(false)
     } catch (error) {
       setConnectionState({
         status: 'error',
         message: error instanceof Error ? error.message : 'Connection test failed.'
       })
+      setIsRepoAccessVerified(false)
     }
   }
 
@@ -113,7 +170,9 @@ export default function GitHubSettings({
       githubToken: token,
       githubUsername: username,
       githubRepo: repo,
-      localRepoPath: repoPath
+      localRepoPath: repoPath,
+      githubRepoVerified: isRepoAccessVerified,
+      githubRepoVerifiedAt: isRepoAccessVerified ? Date.now() : null
     })
     onClose()
   }
@@ -138,6 +197,7 @@ export default function GitHubSettings({
               id="github-token"
               onChange={(event) => {
                 setToken(event.target.value)
+                setIsRepoAccessVerified(false)
               }}
               placeholder="ghp_xxx"
               type="password"
@@ -156,6 +216,7 @@ export default function GitHubSettings({
               id="github-username"
               onChange={(event) => {
                 setUsername(event.target.value)
+                setIsRepoAccessVerified(false)
               }}
               placeholder="starlash7"
               type="text"
@@ -170,11 +231,15 @@ export default function GitHubSettings({
               id="github-repo"
               onChange={(event) => {
                 setRepo(event.target.value)
+                setIsRepoAccessVerified(false)
               }}
               placeholder="Claudoro"
               type="text"
               value={repo}
             />
+            <p className="mt-1 text-[11px] leading-relaxed text-[var(--terminal-dim)]">
+              Use only repository name, for example <code>Claudoro</code>.
+            </p>
           </label>
 
           <label className="block text-xs text-[var(--terminal-muted)]" htmlFor="github-local-path">
@@ -220,27 +285,38 @@ export default function GitHubSettings({
           ) : null}
         </div>
 
-        <div className="mt-2 flex items-center justify-end gap-2">
-          <button
-            className="terminal-btn terminal-btn-secondary"
-            onClick={() => {
-              void handleConnectionTest()
-            }}
-            type="button"
-          >
-            <span className="flex items-center gap-1.5">
-              <TestTubeDiagonal size={14} /> Test Connection
-            </span>
-          </button>
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <div className="h-6">
+            {isRepoAccessVerified ? (
+              <span className="inline-flex items-center gap-1 rounded border border-[var(--accent)] bg-[rgba(217,119,87,0.12)] px-2 py-1 text-[11px] font-semibold tracking-[0.05em] text-[var(--accent-strong)]">
+                <CheckCircle2 size={12} />
+                Repo Verified
+              </span>
+            ) : null}
+          </div>
 
-          <button
-            className="terminal-btn terminal-btn-primary"
-            disabled={!canSave || connectionState.status === 'loading'}
-            onClick={handleSave}
-            type="button"
-          >
-            Save
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              className="terminal-btn terminal-btn-secondary"
+              onClick={() => {
+                void handleConnectionTest()
+              }}
+              type="button"
+            >
+              <span className="flex items-center gap-1.5">
+                <TestTubeDiagonal size={14} /> Test Connection
+              </span>
+            </button>
+
+            <button
+              className="terminal-btn terminal-btn-primary"
+              disabled={!canSave || connectionState.status === 'loading'}
+              onClick={handleSave}
+              type="button"
+            >
+              Save
+            </button>
+          </div>
         </div>
       </div>
     </div>

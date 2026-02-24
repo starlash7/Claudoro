@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Github, RefreshCw, Settings } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { CheckCircle2, Github, RefreshCw, Settings } from 'lucide-react'
 import { useGitHub } from '../../hooks/useGitHub'
 import { useStats } from '../../hooks/useStats'
 import { useSettingsStore } from '../../store/settingsStore'
@@ -14,13 +14,38 @@ function MiniCard({ label, value }: { label: string; value: string }): React.JSX
   )
 }
 
+const formatAge = (from: number, to: number): string => {
+  const seconds = Math.max(0, Math.floor((to - from) / 1000))
+
+  if (seconds < 10) {
+    return 'just now'
+  }
+
+  if (seconds < 60) {
+    return `${seconds}s ago`
+  }
+
+  if (seconds < 3600) {
+    return `${Math.floor(seconds / 60)}m ago`
+  }
+
+  if (seconds < 86_400) {
+    return `${Math.floor(seconds / 3600)}h ago`
+  }
+
+  return `${Math.floor(seconds / 86_400)}d ago`
+}
+
 export default function GitHubWidget(): React.JSX.Element {
   const isGitHubEnabled = useSettingsStore((state) => state.isGitHubEnabled)
   const githubUsername = useSettingsStore((state) => state.githubUsername)
   const githubRepo = useSettingsStore((state) => state.githubRepo)
+  const githubRepoVerified = useSettingsStore((state) => state.githubRepoVerified)
+  const githubRepoVerifiedAt = useSettingsStore((state) => state.githubRepoVerifiedAt)
   const todayFocusMinutes = useStats().todayFocusMinutes
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [clock, setClock] = useState(() => Date.now())
   const { metrics, loading, error, errorCode, lastUpdated, refresh } = useGitHub()
 
   const focusPerCommit =
@@ -46,13 +71,33 @@ export default function GitHubWidget(): React.JSX.Element {
   )
 
   const canOpenSettingsFromError = errorCode === 'auth' || errorCode === 'not_found'
+  const syncAge = lastUpdated ? formatAge(lastUpdated, clock) : null
+  const verifyAge = githubRepoVerifiedAt ? formatAge(githubRepoVerifiedAt, clock) : null
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setClock(Date.now())
+    }, 30_000)
+
+    return () => {
+      window.clearInterval(interval)
+    }
+  }, [])
 
   return (
     <section className="terminal-card p-3">
       <div className="mb-3 flex items-center justify-between">
-        <div className="terminal-section-title">
-          <Github size={16} />
-          {isGitHubEnabled ? `${githubUsername}/${githubRepo}` : 'GitHub Integration'}
+        <div className="flex items-center gap-2">
+          <div className="terminal-section-title">
+            <Github size={16} />
+            {isGitHubEnabled ? `${githubUsername}/${githubRepo}` : 'GitHub Integration'}
+          </div>
+          {isGitHubEnabled && githubRepoVerified ? (
+            <span className="inline-flex items-center gap-1 rounded border border-[var(--accent)] bg-[rgba(217,119,87,0.12)] px-2 py-0.5 text-[10px] font-semibold tracking-[0.05em] text-[var(--accent-strong)]">
+              <CheckCircle2 size={11} />
+              {verifyAge ? `Repo Verified · ${verifyAge}` : 'Repo Verified'}
+            </span>
+          ) : null}
         </div>
         <div className="flex items-center gap-1">
           {isGitHubEnabled ? (
@@ -127,9 +172,7 @@ export default function GitHubWidget(): React.JSX.Element {
                 ) : null}
               </div>
             ) : null}
-            {!loading && !error && lastUpdated ? (
-              <p>Last updated: {new Date(lastUpdated).toLocaleTimeString()}</p>
-            ) : null}
+            {!loading && !error && syncAge ? <p>Last sync: {syncAge}</p> : null}
           </div>
         </>
       )}
