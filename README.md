@@ -71,6 +71,11 @@ npm run build
 
 Your GitHub settings are stored locally on your device.
 
+## Release Docs
+
+- QA checklist: `docs/RELEASE_QA_CHECKLIST.md`
+- Pipeline guide: `docs/RELEASE_PIPELINE.md`
+
 ## Roadmap
 
 - Team leaderboard for shared focus tracking

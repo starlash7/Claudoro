@@ -9,6 +9,7 @@ import {
 } from '../../../shared/constants'
 
 const TIMER_STORAGE_KEY = 'claudoro_timer'
+const TIMER_STORAGE_VERSION = 1
 const RECOVERY_NOTICE_THRESHOLD_SECONDS = 20
 
 interface TimerState {
@@ -306,6 +307,22 @@ export const useTimerStore = create<TimerState>()(
     }),
     {
       name: TIMER_STORAGE_KEY,
+      version: TIMER_STORAGE_VERSION,
+      migrate: (persistedState) => {
+        const state = (persistedState ?? {}) as Partial<TimerState>
+
+        return {
+          mode: state.mode ?? 'pomodoro',
+          status: state.status ?? 'idle',
+          timeRemaining: state.timeRemaining ?? TIMER_DURATIONS.pomodoro,
+          totalTime: state.totalTime ?? TIMER_DURATIONS.pomodoro,
+          completedPomodoros: state.completedPomodoros ?? 0,
+          mascotState: state.mascotState ?? 'idle',
+          goal: state.goal ?? '',
+          lastTickAt: state.lastTickAt ?? null,
+          recoveryNoticeSeconds: null
+        }
+      },
       partialize: (state) => ({
         mode: state.mode,
         status: state.status,

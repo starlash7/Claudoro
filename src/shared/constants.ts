@@ -18,7 +18,8 @@ export const IPC_CHANNELS = {
   DIALOG_SELECT_DIRECTORY: 'dialog:select-directory',
   EXTERNAL_OPEN: 'external:open',
   TRAY_UPDATE_STATE: 'tray:update-state',
-  TRAY_ACTION: 'tray:action'
+  TRAY_ACTION: 'tray:action',
+  APP_LOG_APPEND: 'app-log:append'
 } as const
 
 export type MascotState = 'idle' | 'focusing' | 'break' | 'complete'
@@ -51,4 +52,15 @@ export interface TrayStatePayload {
   mode: TimerMode
   status: TimerStatus
   timeRemaining: number
+}
+
+export type AppLogLevel = 'info' | 'warn' | 'error'
+export type AppLogSource = 'main' | 'renderer'
+
+export interface AppLogPayload {
+  level: AppLogLevel
+  source: AppLogSource
+  event: string
+  message: string
+  context?: Record<string, unknown>
 }

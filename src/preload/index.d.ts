@@ -1,4 +1,5 @@
 import type {
+  AppLogPayload,
   ExternalOpenPayload,
   GitCommitPayload,
   GitCommitResult,
@@ -15,6 +16,7 @@ export interface ElectronAPI {
   selectDirectory: () => Promise<string | null>
   commitChanges: (payload: GitCommitPayload) => Promise<GitCommitResult>
   openExternal: (payload: ExternalOpenPayload) => Promise<boolean>
+  appendLog: (payload: AppLogPayload) => Promise<boolean>
   updateTrayState: (payload: TrayStatePayload) => Promise<boolean>
   onTrayAction: (listener: (action: TrayAction) => void) => () => void
 }

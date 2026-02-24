@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import {
+  type AppLogPayload,
   type ExternalOpenPayload,
   IPC_CHANNELS,
   type GitCommitPayload,
@@ -17,6 +18,7 @@ export interface ElectronAPI {
   selectDirectory: () => Promise<string | null>
   commitChanges: (payload: GitCommitPayload) => Promise<GitCommitResult>
   openExternal: (payload: ExternalOpenPayload) => Promise<boolean>
+  appendLog: (payload: AppLogPayload) => Promise<boolean>
   updateTrayState: (payload: TrayStatePayload) => Promise<boolean>
   onTrayAction: (listener: (action: TrayAction) => void) => () => void
 }
@@ -27,6 +29,7 @@ const electronAPI: ElectronAPI = {
   closeWindow: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_CLOSE),
   showNotification: (payload) => ipcRenderer.invoke(IPC_CHANNELS.NOTIFICATION_SHOW, payload),
   openExternal: (payload) => ipcRenderer.invoke(IPC_CHANNELS.EXTERNAL_OPEN, payload),
+  appendLog: (payload) => ipcRenderer.invoke(IPC_CHANNELS.APP_LOG_APPEND, payload),
   updateTrayState: (payload) => ipcRenderer.invoke(IPC_CHANNELS.TRAY_UPDATE_STATE, payload),
   onTrayAction: (listener) => {
     const wrapped = (_event: IpcRendererEvent, action: TrayAction): void => {

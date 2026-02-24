@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 const GOAL_HISTORY_STORAGE_KEY = 'claudoro_goal_history'
+const GOAL_HISTORY_STORAGE_VERSION = 1
 
 export interface GoalRecord {
   date: string
@@ -106,7 +107,14 @@ const useGoalHistoryStore = create<GoalHistoryState>()(
       }
     }),
     {
-      name: GOAL_HISTORY_STORAGE_KEY
+      name: GOAL_HISTORY_STORAGE_KEY,
+      version: GOAL_HISTORY_STORAGE_VERSION,
+      migrate: (persistedState) => {
+        const state = (persistedState ?? {}) as Partial<GoalHistoryState>
+        return {
+          goals: state.goals ?? []
+        }
+      }
     }
   )
 )

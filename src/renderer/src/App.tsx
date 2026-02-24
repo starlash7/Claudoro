@@ -9,8 +9,11 @@ import Stats from './components/Stats/Stats'
 import CommitMessageModal from './components/GitHub/CommitMessageModal'
 import GitHubWidget from './components/GitHub/GitHubWidget'
 import MediaLauncher from './components/Media/MediaLauncher'
+import OnboardingModal from './components/Onboarding/OnboardingModal'
+import { useAppLogging } from './hooks/useAppLogging'
 import { useTimer } from './hooks/useTimer'
 import { useTrayIntegration } from './hooks/useTrayIntegration'
+import { useAppStore, useShouldShowOnboarding } from './store/appStore'
 import { useTimerStore } from './store/timerStore'
 
 type LeftMenu = 'timer' | 'streak' | 'music' | 'settings'
@@ -25,10 +28,13 @@ const menuItems: Array<{ id: LeftMenu; label: string }> = [
 function App(): React.JSX.Element {
   useTimer()
   useTrayIntegration()
+  useAppLogging()
 
   const [activeMenu, setActiveMenu] = useState<LeftMenu>('timer')
   const recoveryNoticeSeconds = useTimerStore((state) => state.recoveryNoticeSeconds)
   const clearRecoveryNotice = useTimerStore((state) => state.clearRecoveryNotice)
+  const shouldShowOnboarding = useShouldShowOnboarding()
+  const completeOnboarding = useAppStore((state) => state.completeOnboarding)
 
   useEffect(() => {
     if (!recoveryNoticeSeconds) {
@@ -122,6 +128,17 @@ function App(): React.JSX.Element {
       </main>
 
       <CommitMessageModal />
+      {shouldShowOnboarding ? (
+        <OnboardingModal
+          isOpen
+          onClose={() => {
+            completeOnboarding()
+          }}
+          onOpenSettings={() => {
+            setActiveMenu('settings')
+          }}
+        />
+      ) : null}
     </div>
   )
 }

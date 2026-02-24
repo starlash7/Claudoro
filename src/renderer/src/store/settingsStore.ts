@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 const SETTINGS_STORAGE_KEY = 'claudoro_settings'
+const SETTINGS_STORAGE_VERSION = 1
 
 export interface GitHubSettings {
   githubToken: string
@@ -132,6 +133,17 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: SETTINGS_STORAGE_KEY,
+      version: SETTINGS_STORAGE_VERSION,
+      migrate: (persistedState) => {
+        const state = (persistedState ?? {}) as Partial<GitHubSettings>
+
+        return {
+          ...defaultSettings,
+          ...state,
+          githubRepoVerified: state.githubRepoVerified ?? false,
+          githubRepoVerifiedAt: state.githubRepoVerifiedAt ?? null
+        }
+      },
       partialize: (state) => ({
         githubToken: state.githubToken,
         githubUsername: state.githubUsername,

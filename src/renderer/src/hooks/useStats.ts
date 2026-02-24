@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 const STATS_STORAGE_KEY = 'claudoro_stats'
+const STATS_STORAGE_VERSION = 1
 
 export interface DailyStat {
   date: string
@@ -139,7 +140,17 @@ const useStatsStore = create<StatsState>()(
       }
     }),
     {
-      name: STATS_STORAGE_KEY
+      name: STATS_STORAGE_KEY,
+      version: STATS_STORAGE_VERSION,
+      migrate: (persistedState) => {
+        const state = (persistedState ?? {}) as Partial<StatsState>
+
+        return {
+          dailyStats: state.dailyStats ?? [],
+          currentStreak: state.currentStreak ?? 0,
+          lastActiveDate: state.lastActiveDate ?? null
+        }
+      }
     }
   )
 )

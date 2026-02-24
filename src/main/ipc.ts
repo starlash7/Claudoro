@@ -1,7 +1,9 @@
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import { BrowserWindow, Notification, dialog, ipcMain, shell } from 'electron'
+import { appendAppLog } from './logger'
 import {
+  type AppLogPayload,
   type ExternalOpenPayload,
   type GitCommitPayload,
   type GitCommitResult,
@@ -82,6 +84,11 @@ export const registerIpcHandlers = ({
 
   ipcMain.handle(IPC_CHANNELS.TRAY_UPDATE_STATE, (_, payload: TrayStatePayload) => {
     onTrayStateUpdate?.(payload)
+    return true
+  })
+
+  ipcMain.handle(IPC_CHANNELS.APP_LOG_APPEND, (_, payload: AppLogPayload) => {
+    appendAppLog(payload)
     return true
   })
 
