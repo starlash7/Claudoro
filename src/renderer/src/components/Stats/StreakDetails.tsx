@@ -1,14 +1,16 @@
-import type { DailyStat } from '../../hooks/useStats'
-
 interface StreakDetailsProps {
-  dailyStats: DailyStat[]
+  activityByDate: Record<string, number>
   currentStreak: number
   longestStreak: number
+  title: string
+  summaryLabel: string
+  tooltipSuffix?: string
+  colorScale: number[]
 }
 
 interface CellData {
   dateKey: string
-  focusMinutes: number
+  value: number
   isFuture: boolean
 }
 
@@ -20,8 +22,7 @@ const dateKey = (date: Date): string => {
   return localDate.toISOString().slice(0, 10)
 }
 
-const buildCells = (dailyStats: DailyStat[]): CellData[] => {
-  const statMap = new Map(dailyStats.map((stat) => [stat.date, stat]))
+const buildCells = (activityByDate: Record<string, number>): CellData[] => {
   const today = new Date()
   const todayKey = dateKey(today)
   const endOfWeek = new Date(today)
@@ -32,11 +33,11 @@ const buildCells = (dailyStats: DailyStat[]): CellData[] => {
     target.setDate(endOfWeek.getDate() - (DAYS_TO_SHOW - 1 - index))
 
     const key = dateKey(target)
-    const stat = statMap.get(key)
+    const value = activityByDate[key] ?? 0
 
     return {
       dateKey: key,
-      focusMinutes: stat?.focusMinutes ?? 0,
+      value,
       isFuture: key > todayKey
     }
   })
@@ -68,40 +69,41 @@ const buildMonthLabels = (weekColumns: CellData[][]): string[] => {
   })
 }
 
-const getHeatColor = (focusMinutes: number): string => {
-  if (focusMinutes <= 0) {
+const getHeatColor = (value: number, colorScale: number[]): string => {
+  if (value <= 0) {
     return '#fff4ef'
   }
 
-  if (focusMinutes < 20) {
-    return '#f8d7ca'
+  const palette = ['#f8d7ca', '#f0b59f', '#e28d71', '#d97757', '#b85c3f']
+  let level = 0
+
+  for (let index = 0; index < colorScale.length; index += 1) {
+    if (value >= colorScale[index]) {
+      level = Math.min(index + 1, palette.length - 1)
+    }
   }
 
-  if (focusMinutes < 45) {
-    return '#f0b59f'
-  }
-
-  if (focusMinutes < 90) {
-    return '#e28d71'
-  }
-
-  return '#d97757'
+  return palette[level]
 }
 
 export default function StreakDetails({
-  dailyStats,
+  activityByDate,
   currentStreak,
-  longestStreak
+  longestStreak,
+  title,
+  summaryLabel,
+  tooltipSuffix = '',
+  colorScale
 }: StreakDetailsProps): React.JSX.Element {
-  const cells = buildCells(dailyStats)
+  const cells = buildCells(activityByDate)
   const weekColumns = buildWeekColumns(cells)
   const monthLabels = buildMonthLabels(weekColumns)
-  const totalFocusMinutes = cells.reduce((sum, cell) => sum + cell.focusMinutes, 0)
+  const totalActivity = cells.reduce((sum, cell) => sum + cell.value, 0)
 
   return (
     <section className="terminal-card p-3">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h2 className="terminal-section-title">Focus Heatmap</h2>
+        <h2 className="terminal-section-title">{title}</h2>
         <div className="flex items-center gap-2 text-[11px] text-[var(--terminal-dim)]">
           <span>{currentStreak}d</span>
           <span>·</span>
@@ -137,9 +139,9 @@ export default function StreakDetails({
                     style={{
                       backgroundColor: cell.isFuture
                         ? 'rgba(217,119,87,0.04)'
-                        : getHeatColor(cell.focusMinutes)
+                        : getHeatColor(cell.value, colorScale)
                     }}
-                    title={`${cell.dateKey} · ${cell.focusMinutes}m`}
+                    title={`${cell.dateKey} · ${cell.value}${tooltipSuffix}`}
                   />
                 ))}
               </div>
@@ -149,15 +151,15 @@ export default function StreakDetails({
 
         <div className="mt-3 flex items-center justify-between gap-2 text-[10px] text-[var(--terminal-dim)]">
           <p>
-            {totalFocusMinutes} minutes focused in the last {WEEKS_TO_SHOW} weeks
+            {totalActivity} {summaryLabel} in the last {WEEKS_TO_SHOW} weeks
           </p>
           <div className="flex items-center gap-1">
             <span>Less</span>
-            {[0, 20, 45, 90].map((value) => (
+            {[0, ...colorScale].map((value) => (
               <div
                 className="h-2.5 w-2.5 rounded-[2px] border border-[rgba(217,119,87,0.18)]"
                 key={value}
-                style={{ backgroundColor: getHeatColor(value) }}
+                style={{ backgroundColor: getHeatColor(value, colorScale) }}
               />
             ))}
             <span>More</span>

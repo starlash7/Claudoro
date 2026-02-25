@@ -2,11 +2,13 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 export const SETTINGS_STORAGE_KEY = 'claudoro_settings'
-const SETTINGS_STORAGE_VERSION = 3
+const SETTINGS_STORAGE_VERSION = 4
 
 export type GitHubMode = 'account' | 'repository'
+export type StreakSource = 'focus' | 'github' | 'hybrid'
 
 export interface GitHubSettings {
+  streakSource: StreakSource
   githubMode: GitHubMode
   githubToken: string
   githubUsername: string
@@ -18,6 +20,7 @@ export interface GitHubSettings {
 }
 
 interface SettingsState extends GitHubSettings {
+  setStreakSource: (source: StreakSource) => void
   setGitHubMode: (mode: GitHubMode) => void
   setGitHubToken: (token: string) => void
   setGitHubUsername: (username: string) => void
@@ -29,6 +32,7 @@ interface SettingsState extends GitHubSettings {
 }
 
 const defaultSettings: GitHubSettings = {
+  streakSource: 'focus',
   githubMode: 'repository',
   githubToken: '',
   githubUsername: '',
@@ -54,6 +58,9 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
       ...defaultSettings,
+      setStreakSource: (source) => {
+        set({ streakSource: source })
+      },
       setGitHubMode: (mode) => {
         const next = {
           ...get(),
@@ -119,6 +126,7 @@ export const useSettingsStore = create<SettingsState>()(
         const next = {
           ...current,
           ...settings,
+          streakSource: settings.streakSource ?? current.streakSource,
           githubMode: settings.githubMode ?? current.githubMode,
           githubToken: settings.githubToken?.trim() ?? current.githubToken,
           githubUsername: settings.githubUsername?.trim() ?? current.githubUsername,
@@ -167,6 +175,7 @@ export const useSettingsStore = create<SettingsState>()(
         return {
           ...defaultSettings,
           ...state,
+          streakSource: state.streakSource ?? 'focus',
           githubMode: state.githubMode ?? 'repository',
           githubToken: state.githubToken ?? '',
           githubRepoVerified: state.githubRepoVerified ?? false,
@@ -174,6 +183,7 @@ export const useSettingsStore = create<SettingsState>()(
         }
       },
       partialize: (state) => ({
+        streakSource: state.streakSource,
         githubMode: state.githubMode,
         githubUsername: state.githubUsername,
         githubRepo: state.githubRepo,

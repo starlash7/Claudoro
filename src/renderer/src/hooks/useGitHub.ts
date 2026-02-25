@@ -10,9 +10,15 @@ interface RepoTarget {
   repo: string
 }
 
+export interface GitHubContributionDay {
+  date: string
+  count: number
+}
+
 interface GitHubMetrics {
   todayCommits: number
   weeklyContributions: number[]
+  contributionDays: GitHubContributionDay[]
   openPRs: number
   openIssues: number
 }
@@ -36,12 +42,14 @@ interface UseGitHubResult {
 
 const CACHE_TTL_MS = 5 * 60 * 1000
 const REFRESH_INTERVAL_MS = 15 * 60 * 1000
+const CONTRIBUTION_LOOKBACK_DAYS = 364
 
 const queryCache = new Map<string, { expiresAt: number; value: unknown }>()
 
 const emptyMetrics: GitHubMetrics = {
   todayCommits: 0,
   weeklyContributions: [0, 0, 0, 0, 0, 0, 0],
+  contributionDays: [],
   openPRs: 0,
   openIssues: 0
 }
@@ -51,12 +59,12 @@ const toLocalDateKey = (date: Date): string => {
   return localDate.toISOString().slice(0, 10)
 }
 
-const buildRecentDateKeys = (): string[] => {
+const buildRecentDateKeys = (days = 7): string[] => {
   const today = new Date()
 
-  return Array.from({ length: 7 }, (_, index) => {
+  return Array.from({ length: days }, (_, index) => {
     const date = new Date(today)
-    date.setDate(today.getDate() - (6 - index))
+    date.setDate(today.getDate() - (days - 1 - index))
     return toLocalDateKey(date)
   })
 }
@@ -360,13 +368,22 @@ interface ContributionCalendarQuery {
   } | null
 }
 
-const fetchContributions = async (username: string, token: string): Promise<number[]> => {
-  const dateKeys = buildRecentDateKeys()
+interface ContributionSnapshot {
+  weeklyContributions: number[]
+  contributionDays: GitHubContributionDay[]
+}
+
+const fetchContributions = async (
+  username: string,
+  token: string
+): Promise<ContributionSnapshot> => {
+  const fullDateKeys = buildRecentDateKeys(CONTRIBUTION_LOOKBACK_DAYS)
+  const weeklyDateKeys = fullDateKeys.slice(-7)
   const authKey = tokenCacheKey(token)
 
-  return fetchWithCache(`weekly-contrib:${username}:${authKey}`, async () => {
+  return fetchWithCache(`contrib-snapshot:${username}:${authKey}`, async () => {
     const from = new Date()
-    from.setDate(from.getDate() - 6)
+    from.setDate(from.getDate() - (CONTRIBUTION_LOOKBACK_DAYS - 1))
     from.setHours(0, 0, 0, 0)
 
     const to = new Date()
@@ -411,7 +428,17 @@ const fetchContributions = async (username: string, token: string): Promise<numb
       })
     })
 
-    return dateKeys.map((key) => contributionsByDate.get(key) ?? 0)
+    const contributionDays = fullDateKeys.map((key) => ({
+      date: key,
+      count: contributionsByDate.get(key) ?? 0
+    }))
+
+    const weeklyContributions = weeklyDateKeys.map((key) => contributionsByDate.get(key) ?? 0)
+
+    return {
+      weeklyContributions,
+      contributionDays
+    }
   })
 }
 
@@ -469,13 +496,15 @@ export const useGitHub = (): UseGitHubResult => {
     setErrorCode(null)
 
     try {
-      const weeklyContributions = await fetchContributions(githubUsername, githubToken)
+      const contributionSnapshot = await fetchContributions(githubUsername, githubToken)
+      const { weeklyContributions, contributionDays } = contributionSnapshot
       const todayContributions = weeklyContributions[weeklyContributions.length - 1] ?? 0
 
       if (githubMode === 'account') {
         setMetrics({
           todayCommits: todayContributions,
           weeklyContributions,
+          contributionDays,
           openPRs: 0,
           openIssues: 0
         })
@@ -502,6 +531,7 @@ export const useGitHub = (): UseGitHubResult => {
       setMetrics({
         todayCommits,
         weeklyContributions,
+        contributionDays,
         openPRs,
         openIssues
       })
