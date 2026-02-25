@@ -174,7 +174,7 @@ function App(): React.JSX.Element {
     : 0
 
   return (
-    <div className="app-shell flex h-screen flex-col overflow-hidden border border-[var(--terminal-border)] bg-[var(--terminal-bg)] text-[var(--terminal-text)] shadow-[0_0_0_1px_rgba(217,119,87,0.12),0_16px_48px_var(--terminal-shadow)]">
+    <div className="app-shell relative flex h-screen flex-col overflow-hidden border border-[var(--terminal-border)] bg-[var(--terminal-bg)] text-[var(--terminal-text)] shadow-[0_0_0_1px_rgba(217,119,87,0.12),0_16px_48px_var(--terminal-shadow)]">
       <Titlebar />
 
       {recoveryNoticeSeconds ? (
@@ -186,8 +186,8 @@ function App(): React.JSX.Element {
       ) : null}
 
       <main className="terminal-scroll flex-1 overflow-y-auto px-3 py-3 sm:px-5 sm:py-4">
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-3">
-          <aside className="terminal-tab-bar h-fit p-1.5">
+        <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-3 pb-2">
+          <aside className="terminal-tab-bar relative z-10 h-fit p-1.5">
             <nav className="grid grid-cols-4 gap-2">
               {menuItems.map((item) => {
                 const isActive = item.id === activeMenu
@@ -210,9 +210,7 @@ function App(): React.JSX.Element {
             </nav>
           </aside>
 
-          <Mascot />
-
-          <section className="min-w-0">
+          <section className="relative z-10 min-w-0">
             {activeMenu === 'timer' ? (
               <section className="space-y-3">
                 <GoalInput />
@@ -245,6 +243,12 @@ function App(): React.JSX.Element {
           </section>
         </div>
       </main>
+
+      <footer className="shrink-0 border-t border-[var(--terminal-border-soft)] px-4 py-2">
+        <p className="terminal-footer-note text-right">Powered by pixy7</p>
+      </footer>
+
+      <Mascot />
 
       <CommitMessageModal />
       {shouldShowOnboarding ? (
