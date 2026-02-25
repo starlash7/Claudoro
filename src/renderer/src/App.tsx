@@ -111,6 +111,9 @@ function App(): React.JSX.Element {
     const bootstrapToken = async (): Promise<void> => {
       const legacy = getLegacySettingsFromStorage()
       const secureToken = (await window.electronAPI.getGitHubToken()).trim()
+      const restoredMode: GitHubMode = legacy.githubMode || githubMode || 'repository'
+      const restoredUsername = legacy.githubUsername || githubUsername
+      const restoredRepo = restoredMode === 'repository' ? legacy.githubRepo || githubRepo : ''
 
       if (cancelled) {
         return
@@ -119,9 +122,9 @@ function App(): React.JSX.Element {
       if (secureToken) {
         updateGitHubSettings({
           githubToken: secureToken,
-          githubMode: githubMode || legacy.githubMode || 'repository',
-          githubUsername: githubUsername || legacy.githubUsername,
-          githubRepo: githubRepo || legacy.githubRepo
+          githubMode: restoredMode,
+          githubUsername: restoredUsername,
+          githubRepo: restoredRepo
         })
         setIsTokenBootstrapDone(true)
         return
@@ -143,9 +146,9 @@ function App(): React.JSX.Element {
       if (stored) {
         updateGitHubSettings({
           githubToken: legacyToken,
-          githubMode: githubMode || legacy.githubMode || 'repository',
-          githubUsername: githubUsername || legacy.githubUsername,
-          githubRepo: githubRepo || legacy.githubRepo
+          githubMode: restoredMode,
+          githubUsername: restoredUsername,
+          githubRepo: restoredRepo
         })
       }
 

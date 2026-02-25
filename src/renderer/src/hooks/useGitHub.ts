@@ -72,7 +72,7 @@ const buildDateKeysBetween = (start: Date, end: Date): string[] => {
 
 const getContributionRange = (): { start: Date; end: Date } => {
   const now = new Date()
-  const start = new Date(now.getFullYear() - 1, 0, 1)
+  const start = new Date(now.getFullYear(), 0, 1)
   start.setHours(0, 0, 0, 0)
 
   const end = new Date(now)
@@ -393,8 +393,9 @@ const fetchContributions = async (
   const fullDateKeys = buildDateKeysBetween(start, end)
   const weeklyDateKeys = fullDateKeys.slice(-7)
   const authKey = tokenCacheKey(token)
+  const rangeKey = `${toLocalDateKey(start)}:${toLocalDateKey(end)}`
 
-  return fetchWithCache(`contrib-snapshot:${username}:${authKey}`, async () => {
+  return fetchWithCache(`contrib-snapshot:${username}:${rangeKey}:${authKey}`, async () => {
     const response = await fetchGitHubGraphQL<ContributionCalendarQuery>(
       `query($login: String!, $from: DateTime!, $to: DateTime!) {
         user(login: $login) {

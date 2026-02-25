@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import GoalSection from './GoalSection'
 import { useStats } from '../../hooks/useStats'
 import { useGitHub } from '../../hooks/useGitHub'
@@ -29,8 +29,6 @@ interface StreakViewModel {
   }
   showYearLabels?: boolean
 }
-
-type GitHubYearSelection = 'all' | number
 
 const parseValue = (value: string): ParsedValue => {
   const match = value.trim().match(/^(\d+)([a-zA-Z]+)?$/)
@@ -121,31 +119,11 @@ const buildGitHubActivityByDate = (
   }, {})
 }
 
-const getContributionYears = (contributionDays: Array<{ date: string }>): number[] => {
-  return [...new Set(contributionDays.map((day) => Number(day.date.slice(0, 4))))]
-    .filter((year) => Number.isFinite(year))
-    .sort((a, b) => a - b)
-}
-
-const getDateKey = (date: Date): string => {
-  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-  return localDate.toISOString().slice(0, 10)
-}
-
-const getYearDateRange = (year: number): { start: string; end: string } => {
+const getCurrentYearDateRange = (): { start: string; end: string } => {
   const now = new Date()
-  const start = `${year}-01-01`
-
-  if (year < now.getFullYear()) {
-    return {
-      start,
-      end: `${year}-12-31`
-    }
-  }
-
   return {
-    start,
-    end: getDateKey(now)
+    start: `${now.getFullYear()}-01-01`,
+    end: `${now.getFullYear()}-12-31`
   }
 }
 
@@ -183,27 +161,11 @@ export default function Stats(): React.JSX.Element {
   const setStreakSource = useSettingsStore((state) => state.setStreakSource)
   const isGitHubEnabled = useSettingsStore((state) => state.isGitHubEnabled)
   const { metrics, loading: githubLoading, error: githubError } = useGitHub()
-  const [selectedGitHubYear, setSelectedGitHubYear] = useState<GitHubYearSelection>('all')
-
-  const contributionYears = useMemo(
-    () => getContributionYears(metrics.contributionDays),
-    [metrics.contributionDays]
-  )
-  const effectiveSelectedGitHubYear: GitHubYearSelection =
-    selectedGitHubYear === 'all' || contributionYears.includes(selectedGitHubYear)
-      ? selectedGitHubYear
-      : 'all'
+  const currentYearDateRange = useMemo(() => getCurrentYearDateRange(), [])
 
   const streakView = useMemo<StreakViewModel>(() => {
     const focusActivityByDate = buildFocusActivityByDate(dailyStats)
-    const selectedContributionDays =
-      effectiveSelectedGitHubYear === 'all'
-        ? metrics.contributionDays
-        : metrics.contributionDays.filter(
-            (day) => Number(day.date.slice(0, 4)) === effectiveSelectedGitHubYear
-          )
-
-    const githubActivityByDate = buildGitHubActivityByDate(selectedContributionDays)
+    const githubActivityByDate = buildGitHubActivityByDate(metrics.contributionDays)
     const hybridActivityByDate = buildHybridActivityByDate(
       focusActivityByDate,
       githubActivityByDate
@@ -211,15 +173,6 @@ export default function Stats(): React.JSX.Element {
 
     if (streakSource === 'github') {
       const activeDates = buildActiveDateSet(githubActivityByDate)
-      const dateRange =
-        effectiveSelectedGitHubYear !== 'all'
-          ? getYearDateRange(effectiveSelectedGitHubYear)
-          : selectedContributionDays.length > 0
-            ? {
-                start: selectedContributionDays[0].date,
-                end: selectedContributionDays[selectedContributionDays.length - 1].date
-              }
-            : undefined
 
       return {
         activityByDate: githubActivityByDate,
@@ -229,8 +182,8 @@ export default function Stats(): React.JSX.Element {
         summaryLabel: 'contributions',
         tooltipSuffix: 'c',
         colorScale: [1, 2, 4, 8],
-        dateRange,
-        showYearLabels: true
+        dateRange: currentYearDateRange,
+        showYearLabels: false
       }
     }
 
@@ -257,7 +210,7 @@ export default function Stats(): React.JSX.Element {
       tooltipSuffix: 'm',
       colorScale: [1, 20, 45, 90]
     }
-  }, [dailyStats, effectiveSelectedGitHubYear, metrics.contributionDays, streakSource])
+  }, [currentYearDateRange, dailyStats, metrics.contributionDays, streakSource])
 
   const sourceOptions: Array<{ id: StreakSource; label: string }> = [
     { id: 'focus', label: 'Focus' },
@@ -297,37 +250,6 @@ export default function Stats(): React.JSX.Element {
             )
           })}
         </div>
-
-        {streakSource === 'github' && contributionYears.length > 0 ? (
-          <div className="flex items-center gap-1 overflow-x-auto">
-            <span className="terminal-kicker whitespace-nowrap px-1">Year</span>
-            <button
-              className={`terminal-tab shrink-0 px-2 py-1.5 text-[11px] font-semibold tracking-[0.06em] ${
-                effectiveSelectedGitHubYear === 'all' ? 'terminal-tab-active' : ''
-              }`}
-              onClick={() => {
-                setSelectedGitHubYear('all')
-              }}
-              type="button"
-            >
-              All
-            </button>
-            {contributionYears.map((year) => (
-              <button
-                className={`terminal-tab shrink-0 px-2 py-1.5 text-[11px] font-semibold tracking-[0.06em] ${
-                  effectiveSelectedGitHubYear === year ? 'terminal-tab-active' : ''
-                }`}
-                key={`github-year-${year}`}
-                onClick={() => {
-                  setSelectedGitHubYear(year)
-                }}
-                type="button"
-              >
-                {year}
-              </button>
-            ))}
-          </div>
-        ) : null}
 
         <div className="grid grid-cols-3 gap-2">
           <StatCard label="Completed" value={`${todayCompletedSessions}`} />
