@@ -14,7 +14,7 @@ import { useAppLogging } from './hooks/useAppLogging'
 import { useTimer } from './hooks/useTimer'
 import { useTrayIntegration } from './hooks/useTrayIntegration'
 import { useAppStore, useShouldShowOnboarding } from './store/appStore'
-import { SETTINGS_STORAGE_KEY, useSettingsStore } from './store/settingsStore'
+import { SETTINGS_STORAGE_KEY, type GitHubMode, useSettingsStore } from './store/settingsStore'
 import { useTimerStore } from './store/timerStore'
 
 type LeftMenu = 'timer' | 'streak' | 'music' | 'settings'
@@ -38,7 +38,10 @@ function App(): React.JSX.Element {
   const shouldShowOnboarding = useShouldShowOnboarding()
   const completeOnboarding = useAppStore((state) => state.completeOnboarding)
   const githubToken = useSettingsStore((state) => state.githubToken)
-  const setGitHubToken = useSettingsStore((state) => state.setGitHubToken)
+  const githubMode = useSettingsStore((state) => state.githubMode)
+  const githubUsername = useSettingsStore((state) => state.githubUsername)
+  const githubRepo = useSettingsStore((state) => state.githubRepo)
+  const updateGitHubSettings = useSettingsStore((state) => state.updateGitHubSettings)
 
   useEffect(() => {
     if (!recoveryNoticeSeconds) {
@@ -61,22 +64,52 @@ function App(): React.JSX.Element {
 
     let cancelled = false
 
-    const getLegacyTokenFromStorage = (): string => {
+    const getLegacySettingsFromStorage = (): {
+      githubToken: string
+      githubMode: GitHubMode
+      githubUsername: string
+      githubRepo: string
+    } => {
       try {
         const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY)
 
         if (!raw) {
-          return ''
+          return {
+            githubToken: '',
+            githubMode: 'repository',
+            githubUsername: '',
+            githubRepo: ''
+          }
         }
 
-        const parsed = JSON.parse(raw) as { state?: { githubToken?: string } }
-        return parsed.state?.githubToken?.trim() ?? ''
+        const parsed = JSON.parse(raw) as {
+          state?: {
+            githubToken?: string
+            githubMode?: GitHubMode
+            githubUsername?: string
+            githubRepo?: string
+          }
+        }
+        const state = parsed.state
+
+        return {
+          githubToken: state?.githubToken?.trim() ?? '',
+          githubMode: state?.githubMode ?? 'repository',
+          githubUsername: state?.githubUsername?.trim() ?? '',
+          githubRepo: state?.githubRepo?.trim() ?? ''
+        }
       } catch {
-        return ''
+        return {
+          githubToken: '',
+          githubMode: 'repository',
+          githubUsername: '',
+          githubRepo: ''
+        }
       }
     }
 
     const bootstrapToken = async (): Promise<void> => {
+      const legacy = getLegacySettingsFromStorage()
       const secureToken = (await window.electronAPI.getGitHubToken()).trim()
 
       if (cancelled) {
@@ -84,14 +117,17 @@ function App(): React.JSX.Element {
       }
 
       if (secureToken) {
-        if (secureToken !== githubToken) {
-          setGitHubToken(secureToken)
-        }
+        updateGitHubSettings({
+          githubToken: secureToken,
+          githubMode: githubMode || legacy.githubMode || 'repository',
+          githubUsername: githubUsername || legacy.githubUsername,
+          githubRepo: githubRepo || legacy.githubRepo
+        })
         setIsTokenBootstrapDone(true)
         return
       }
 
-      const legacyToken = githubToken.trim() || getLegacyTokenFromStorage()
+      const legacyToken = githubToken.trim() || legacy.githubToken
 
       if (!legacyToken) {
         setIsTokenBootstrapDone(true)
@@ -105,7 +141,12 @@ function App(): React.JSX.Element {
       }
 
       if (stored) {
-        setGitHubToken(legacyToken)
+        updateGitHubSettings({
+          githubToken: legacyToken,
+          githubMode: githubMode || legacy.githubMode || 'repository',
+          githubUsername: githubUsername || legacy.githubUsername,
+          githubRepo: githubRepo || legacy.githubRepo
+        })
       }
 
       setIsTokenBootstrapDone(true)
@@ -116,7 +157,14 @@ function App(): React.JSX.Element {
     return () => {
       cancelled = true
     }
-  }, [githubToken, isTokenBootstrapDone, setGitHubToken])
+  }, [
+    githubMode,
+    githubRepo,
+    githubToken,
+    githubUsername,
+    isTokenBootstrapDone,
+    updateGitHubSettings
+  ])
 
   const recoveredMinutes = recoveryNoticeSeconds
     ? Math.max(1, Math.round(recoveryNoticeSeconds / 60))
