@@ -223,7 +223,7 @@ export default function GitHubSettings({
                 setUsername(event.target.value)
                 setIsRepoAccessVerified(false)
               }}
-              placeholder="starlash7"
+              placeholder="your-github-username"
               type="text"
               value={username}
             />

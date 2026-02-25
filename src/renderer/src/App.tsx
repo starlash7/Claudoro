@@ -127,6 +127,10 @@ function App(): React.JSX.Element {
         </div>
       </main>
 
+      <footer className="shrink-0 border-t border-[var(--terminal-border-soft)] px-4 py-2">
+        <p className="terminal-footer-note text-right">Powered by pixy7</p>
+      </footer>
+
       <CommitMessageModal />
       {shouldShowOnboarding ? (
         <OnboardingModal

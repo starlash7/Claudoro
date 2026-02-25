@@ -310,6 +310,14 @@ textarea {
   color: var(--terminal-dim);
 }
 
+.terminal-footer-note {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--terminal-dim);
+}
+
 .terminal-icon-btn {
   border: 1px solid var(--terminal-border-soft);
   border-radius: 0.65rem;
