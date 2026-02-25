@@ -39,8 +39,10 @@ Use this workflow when preparing store-distributable binaries.
 
 Required repository secrets:
 
-- `CSC_LINK`
-- `CSC_KEY_PASSWORD`
+- `CSC_LINK_MAC`
+- `CSC_KEY_PASSWORD_MAC`
+- `CSC_LINK_WIN`
+- `CSC_KEY_PASSWORD_WIN`
 - `GH_TOKEN`
 - `APPLE_ID` (macOS only)
 - `APPLE_APP_SPECIFIC_PASSWORD` (macOS only)
