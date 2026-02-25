@@ -12,6 +12,9 @@ interface ElectronAPI {
   platform: string
   minimizeWindow: () => Promise<boolean>
   closeWindow: () => Promise<boolean>
+  getGitHubToken: () => Promise<string>
+  setGitHubToken: (token: string) => Promise<boolean>
+  clearGitHubToken: () => Promise<boolean>
   showNotification: (payload: NotificationPayload) => Promise<boolean>
   selectDirectory: () => Promise<string | null>
   commitChanges: (payload: GitCommitPayload) => Promise<GitCommitResult>

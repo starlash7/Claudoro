@@ -2,6 +2,7 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import { BrowserWindow, Notification, dialog, ipcMain, shell } from 'electron'
 import { appendAppLog } from './logger'
+import { clearGitHubToken, getGitHubToken, setGitHubToken } from './secureStore'
 import {
   type AppLogPayload,
   type ExternalOpenPayload,
@@ -90,6 +91,18 @@ export const registerIpcHandlers = ({
   ipcMain.handle(IPC_CHANNELS.APP_LOG_APPEND, (_, payload: AppLogPayload) => {
     appendAppLog(payload)
     return true
+  })
+
+  ipcMain.handle(IPC_CHANNELS.GITHUB_TOKEN_GET, async () => {
+    return getGitHubToken()
+  })
+
+  ipcMain.handle(IPC_CHANNELS.GITHUB_TOKEN_SET, async (_, token: string) => {
+    return setGitHubToken(token)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.GITHUB_TOKEN_CLEAR, async () => {
+    return clearGitHubToken()
   })
 
   ipcMain.handle(IPC_CHANNELS.DIALOG_SELECT_DIRECTORY, async () => {

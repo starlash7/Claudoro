@@ -12,6 +12,9 @@ export interface ElectronAPI {
   platform: NodeJS.Platform
   minimizeWindow: () => Promise<boolean>
   closeWindow: () => Promise<boolean>
+  getGitHubToken: () => Promise<string>
+  setGitHubToken: (token: string) => Promise<boolean>
+  clearGitHubToken: () => Promise<boolean>
   showNotification: (payload: NotificationPayload) => Promise<boolean>
   selectDirectory: () => Promise<string | null>
   commitChanges: (payload: GitCommitPayload) => Promise<GitCommitResult>

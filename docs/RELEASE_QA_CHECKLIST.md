@@ -53,7 +53,7 @@ Run this checklist before every tagged release.
 
 ## 7) Build Validation
 
+- [ ] `npm run qa:release`
 - [ ] `npm run lint`
 - [ ] `npm run typecheck`
 - [ ] `npm run build`
-

@@ -31,6 +31,44 @@ Artifacts:
 
 - Uploads `dist/**` for each target as workflow artifacts.
 
+## Signed Packaging (manual)
+
+Workflow: `.github/workflows/release-signed.yml`
+
+Use this workflow when preparing store-distributable binaries.
+
+Required repository secrets:
+
+- `CSC_LINK`
+- `CSC_KEY_PASSWORD`
+- `GH_TOKEN`
+- `APPLE_ID` (macOS only)
+- `APPLE_APP_SPECIFIC_PASSWORD` (macOS only)
+- `APPLE_TEAM_ID` (macOS only)
+
+Targets:
+
+- Signed macOS package (`npm run build:mac -- --publish never --config.mac.notarize=true`)
+- Signed Windows package (`npm run build:win -- --publish never`)
+
+Artifacts:
+
+- Uploads signed `dist/**` artifacts per platform.
+
+## Release QA Gate
+
+Before tagging, run:
+
+1. `npm run qa:release`
+2. Manual checks from `docs/RELEASE_QA_CHECKLIST.md` sections 1-6.
+
+Only tag after both steps pass.
+
+## Auto-Update Channel
+
+`electron-builder` publish provider is GitHub Releases (`starlash7/Claudoro`) with draft releases.
+Promote drafts to published once validation is complete.
+
 ## Versioning
 
 - Follow SemVer (`major.minor.patch`)
@@ -46,4 +84,3 @@ Use this structure:
 3. Bug fixes
 4. Known issues
 5. Upgrade notes
-

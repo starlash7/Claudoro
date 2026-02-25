@@ -14,6 +14,9 @@ export interface ElectronAPI {
   platform: NodeJS.Platform
   minimizeWindow: () => Promise<boolean>
   closeWindow: () => Promise<boolean>
+  getGitHubToken: () => Promise<string>
+  setGitHubToken: (token: string) => Promise<boolean>
+  clearGitHubToken: () => Promise<boolean>
   showNotification: (payload: NotificationPayload) => Promise<boolean>
   selectDirectory: () => Promise<string | null>
   commitChanges: (payload: GitCommitPayload) => Promise<GitCommitResult>
@@ -27,6 +30,9 @@ const electronAPI: ElectronAPI = {
   platform: process.platform,
   minimizeWindow: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MINIMIZE),
   closeWindow: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_CLOSE),
+  getGitHubToken: () => ipcRenderer.invoke(IPC_CHANNELS.GITHUB_TOKEN_GET),
+  setGitHubToken: (token) => ipcRenderer.invoke(IPC_CHANNELS.GITHUB_TOKEN_SET, token),
+  clearGitHubToken: () => ipcRenderer.invoke(IPC_CHANNELS.GITHUB_TOKEN_CLEAR),
   showNotification: (payload) => ipcRenderer.invoke(IPC_CHANNELS.NOTIFICATION_SHOW, payload),
   openExternal: (payload) => ipcRenderer.invoke(IPC_CHANNELS.EXTERNAL_OPEN, payload),
   appendLog: (payload) => ipcRenderer.invoke(IPC_CHANNELS.APP_LOG_APPEND, payload),

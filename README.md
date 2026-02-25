@@ -71,7 +71,7 @@ npm run build
 2. Enter your GitHub token, username, and repository.
 3. Save and refresh the GitHub panel.
 
-Your GitHub settings are stored locally on your device.
+GitHub token is stored in your OS secure keychain. Other GitHub settings are stored locally on your device.
 
 ## Release Docs
 

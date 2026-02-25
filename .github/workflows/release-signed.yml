@@ -1,0 +1,68 @@
+name: Release Signed
+
+on:
+  workflow_dispatch:
+
+jobs:
+  signed-macos:
+    runs-on: macos-latest
+    env:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      CSC_LINK: ${{ secrets.CSC_LINK }}
+      CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build signed macOS package
+        run: npm run build:mac -- --publish never --config.mac.notarize=true
+
+      - name: Upload signed macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: claudoro-macos-signed
+          path: dist/**
+          if-no-files-found: warn
+
+  signed-windows:
+    runs-on: windows-latest
+    env:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      CSC_LINK: ${{ secrets.CSC_LINK }}
+      CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build signed Windows package
+        run: npm run build:win -- --publish never
+
+      - name: Upload signed Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: claudoro-windows-signed
+          path: dist/**
+          if-no-files-found: warn

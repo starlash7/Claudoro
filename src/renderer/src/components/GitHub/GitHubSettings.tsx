@@ -62,6 +62,8 @@ export default function GitHubSettings({
       return
     }
 
+    let cancelled = false
+
     setToken(storedToken)
     setUsername(storedUsername)
     setRepo(storedRepo)
@@ -72,7 +74,35 @@ export default function GitHubSettings({
       status: 'idle',
       message: ''
     })
-  }, [isOpen, storedToken, storedUsername, storedRepo, storedRepoPath, storedRepoVerified])
+
+    const syncSecureToken = async (): Promise<void> => {
+      const secureToken = (await window.electronAPI.getGitHubToken()).trim()
+
+      if (cancelled || !secureToken) {
+        return
+      }
+
+      setToken(secureToken)
+
+      if (secureToken !== storedToken) {
+        updateGitHubSettings({ githubToken: secureToken })
+      }
+    }
+
+    void syncSecureToken()
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    isOpen,
+    storedToken,
+    storedUsername,
+    storedRepo,
+    storedRepoPath,
+    storedRepoVerified,
+    updateGitHubSettings
+  ])
 
   if (!isOpen) {
     return null
@@ -169,9 +199,22 @@ export default function GitHubSettings({
     }
   }
 
-  const handleSave = (): void => {
+  const handleSave = async (): Promise<void> => {
+    const trimmedToken = token.trim()
+    const hasSavedToken = trimmedToken
+      ? await window.electronAPI.setGitHubToken(trimmedToken)
+      : await window.electronAPI.clearGitHubToken()
+
+    if (!hasSavedToken) {
+      setConnectionState({
+        status: 'error',
+        message: 'Unable to save token in secure storage. Check system keychain access.'
+      })
+      return
+    }
+
     updateGitHubSettings({
-      githubToken: token,
+      githubToken: trimmedToken,
       githubUsername: username,
       githubRepo: repo,
       localRepoPath: repoPath,
@@ -322,7 +365,9 @@ export default function GitHubSettings({
             <button
               className="terminal-btn terminal-btn-primary"
               disabled={!canSave || connectionState.status === 'loading'}
-              onClick={handleSave}
+              onClick={() => {
+                void handleSave()
+              }}
               type="button"
             >
               Save

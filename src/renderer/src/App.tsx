@@ -14,6 +14,7 @@ import { useAppLogging } from './hooks/useAppLogging'
 import { useTimer } from './hooks/useTimer'
 import { useTrayIntegration } from './hooks/useTrayIntegration'
 import { useAppStore, useShouldShowOnboarding } from './store/appStore'
+import { SETTINGS_STORAGE_KEY, useSettingsStore } from './store/settingsStore'
 import { useTimerStore } from './store/timerStore'
 
 type LeftMenu = 'timer' | 'streak' | 'music' | 'settings'
@@ -31,10 +32,13 @@ function App(): React.JSX.Element {
   useAppLogging()
 
   const [activeMenu, setActiveMenu] = useState<LeftMenu>('timer')
+  const [isTokenBootstrapDone, setIsTokenBootstrapDone] = useState(false)
   const recoveryNoticeSeconds = useTimerStore((state) => state.recoveryNoticeSeconds)
   const clearRecoveryNotice = useTimerStore((state) => state.clearRecoveryNotice)
   const shouldShowOnboarding = useShouldShowOnboarding()
   const completeOnboarding = useAppStore((state) => state.completeOnboarding)
+  const githubToken = useSettingsStore((state) => state.githubToken)
+  const setGitHubToken = useSettingsStore((state) => state.setGitHubToken)
 
   useEffect(() => {
     if (!recoveryNoticeSeconds) {
@@ -49,6 +53,70 @@ function App(): React.JSX.Element {
       window.clearTimeout(timeout)
     }
   }, [recoveryNoticeSeconds, clearRecoveryNotice])
+
+  useEffect(() => {
+    if (isTokenBootstrapDone) {
+      return
+    }
+
+    let cancelled = false
+
+    const getLegacyTokenFromStorage = (): string => {
+      try {
+        const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY)
+
+        if (!raw) {
+          return ''
+        }
+
+        const parsed = JSON.parse(raw) as { state?: { githubToken?: string } }
+        return parsed.state?.githubToken?.trim() ?? ''
+      } catch {
+        return ''
+      }
+    }
+
+    const bootstrapToken = async (): Promise<void> => {
+      const secureToken = (await window.electronAPI.getGitHubToken()).trim()
+
+      if (cancelled) {
+        return
+      }
+
+      if (secureToken) {
+        if (secureToken !== githubToken) {
+          setGitHubToken(secureToken)
+        }
+        setIsTokenBootstrapDone(true)
+        return
+      }
+
+      const legacyToken = githubToken.trim() || getLegacyTokenFromStorage()
+
+      if (!legacyToken) {
+        setIsTokenBootstrapDone(true)
+        return
+      }
+
+      const stored = await window.electronAPI.setGitHubToken(legacyToken)
+
+      if (cancelled) {
+        return
+      }
+
+      if (stored) {
+        setGitHubToken(legacyToken)
+      }
+
+      setIsTokenBootstrapDone(true)
+    }
+
+    void bootstrapToken()
+
+    return () => {
+      cancelled = true
+    }
+  }, [githubToken, isTokenBootstrapDone, setGitHubToken])
 
   const recoveredMinutes = recoveryNoticeSeconds
     ? Math.max(1, Math.round(recoveryNoticeSeconds / 60))

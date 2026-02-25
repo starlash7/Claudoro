@@ -14,11 +14,12 @@
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
     "build": "npm run typecheck && electron-vite build",
+    "qa:release": "npm run lint && npm run typecheck && npm run build",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
-    "build:mac": "electron-vite build && electron-builder --mac",
-    "build:linux": "electron-vite build && electron-builder --linux"
+    "build:mac": "npm run build && electron-builder --mac",
+    "build:linux": "npm run build && electron-builder --linux"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
@@ -26,6 +27,7 @@
     "@fontsource/geist-mono": "^5.2.7",
     "@tailwindcss/vite": "^4.2.0",
     "framer-motion": "^12.34.3",
+    "keytar": "^7.9.0",
     "lucide-react": "^0.575.0",
     "tailwindcss": "^4.2.0",
     "zustand": "^5.0.11"
