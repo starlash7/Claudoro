@@ -48,6 +48,11 @@ Required repository secrets:
 - `APPLE_APP_SPECIFIC_PASSWORD` (macOS only)
 - `APPLE_TEAM_ID` (macOS only)
 
+Workflow behavior:
+
+- Secret validation runs before dependency install.
+- If required secrets are missing, the job fails fast with explicit secret names.
+
 Targets:
 
 - Signed macOS package (`npm run build:mac -- --publish never --config.mac.notarize=true`)

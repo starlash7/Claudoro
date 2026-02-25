@@ -24,6 +24,20 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Validate mac signing secrets
+        run: |
+          missing=()
+          [[ -z "$CSC_LINK" ]] && missing+=("CSC_LINK_MAC")
+          [[ -z "$CSC_KEY_PASSWORD" ]] && missing+=("CSC_KEY_PASSWORD_MAC")
+          [[ -z "$APPLE_ID" ]] && missing+=("APPLE_ID")
+          [[ -z "$APPLE_APP_SPECIFIC_PASSWORD" ]] && missing+=("APPLE_APP_SPECIFIC_PASSWORD")
+          [[ -z "$APPLE_TEAM_ID" ]] && missing+=("APPLE_TEAM_ID")
+
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Missing required secrets: ${missing[*]}"
+            exit 1
+          fi
+
       - name: Install dependencies
         run: npm ci
 
@@ -53,6 +67,17 @@ jobs:
         with:
           node-version: 22
           cache: npm
+
+      - name: Validate windows signing secrets
+        run: |
+          $missing = @()
+          if (-not $env:CSC_LINK) { $missing += "CSC_LINK_WIN" }
+          if (-not $env:CSC_KEY_PASSWORD) { $missing += "CSC_KEY_PASSWORD_WIN" }
+
+          if ($missing.Count -gt 0) {
+            Write-Error "Missing required secrets: $($missing -join ', ')"
+            exit 1
+          }
 
       - name: Install dependencies
         run: npm ci
