@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { CheckCircle2, FolderOpen, TestTubeDiagonal, X } from 'lucide-react'
-import { useSettingsStore } from '../../store/settingsStore'
+import { CheckCircle2, FolderOpen, X } from 'lucide-react'
+import { type GitHubMode, useSettingsStore } from '../../store/settingsStore'
 
 interface GitHubSettingsProps {
   isOpen: boolean
@@ -12,6 +12,11 @@ type ConnectionState =
   | { status: 'success'; message: string }
   | { status: 'error'; message: string }
   | { status: 'loading'; message: string }
+
+interface RepoTarget {
+  owner: string
+  repo: string
+}
 
 const parseGitHubError = async (response: Response, fallback: string): Promise<string> => {
   const contentType = response.headers.get('content-type') ?? ''
@@ -35,19 +40,44 @@ const parseGitHubError = async (response: Response, fallback: string): Promise<s
   return fallback
 }
 
+const parseRepoInput = (value: string): { owner: string; repo: string } | null => {
+  const normalized = value.trim().replace(/^\/+|\/+$/g, '')
+  if (!normalized) {
+    return null
+  }
+
+  const segments = normalized.split('/').filter(Boolean)
+
+  if (segments.length === 1) {
+    return {
+      owner: '',
+      repo: segments[0]
+    }
+  }
+
+  if (segments.length === 2) {
+    return {
+      owner: segments[0],
+      repo: segments[1]
+    }
+  }
+
+  return null
+}
+
 export default function GitHubSettings({
   isOpen,
   onClose
 }: GitHubSettingsProps): React.JSX.Element | null {
+  const storedMode = useSettingsStore((state) => state.githubMode)
   const storedToken = useSettingsStore((state) => state.githubToken)
-  const storedUsername = useSettingsStore((state) => state.githubUsername)
   const storedRepo = useSettingsStore((state) => state.githubRepo)
   const storedRepoPath = useSettingsStore((state) => state.localRepoPath)
   const storedRepoVerified = useSettingsStore((state) => state.githubRepoVerified)
   const updateGitHubSettings = useSettingsStore((state) => state.updateGitHubSettings)
 
+  const [mode, setMode] = useState<GitHubMode>('repository')
   const [token, setToken] = useState('')
-  const [username, setUsername] = useState('')
   const [repo, setRepo] = useState('')
   const [repoPath, setRepoPath] = useState('')
   const [isAuthVerified, setIsAuthVerified] = useState(false)
@@ -64,8 +94,8 @@ export default function GitHubSettings({
 
     let cancelled = false
 
+    setMode(storedMode)
     setToken(storedToken)
-    setUsername(storedUsername)
     setRepo(storedRepo)
     setRepoPath(storedRepoPath)
     setIsAuthVerified(storedRepoVerified)
@@ -96,8 +126,8 @@ export default function GitHubSettings({
     }
   }, [
     isOpen,
+    storedMode,
     storedToken,
-    storedUsername,
     storedRepo,
     storedRepoPath,
     storedRepoVerified,
@@ -118,10 +148,75 @@ export default function GitHubSettings({
     setRepoPath(selected)
   }
 
-  const handleConnectionTest = async (): Promise<void> => {
+  const resolveAccountLogin = async (trimmedToken: string): Promise<string> => {
+    const profileResponse = await fetch('https://api.github.com/user', {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${trimmedToken}`
+      }
+    })
+
+    if (!profileResponse.ok) {
+      const message = await parseGitHubError(
+        profileResponse,
+        `Connection failed (${profileResponse.status}).`
+      )
+      throw new Error(message)
+    }
+
+    const profile = (await profileResponse.json()) as { login?: string }
+    const owner = profile.login?.trim() ?? ''
+
+    if (!owner) {
+      throw new Error('Unable to detect GitHub username from token.')
+    }
+
+    return owner
+  }
+
+  const resolveRepoTarget = (repoInput: string, fallbackOwner: string): RepoTarget => {
+    const parsed = parseRepoInput(repoInput)
+
+    if (!parsed) {
+      throw new Error('Repository must be either "repo" or "owner/repo".')
+    }
+
+    if (parsed.owner) {
+      return {
+        owner: parsed.owner,
+        repo: parsed.repo
+      }
+    }
+
+    return {
+      owner: fallbackOwner,
+      repo: parsed.repo
+    }
+  }
+
+  const verifyRepoAccess = async (trimmedToken: string, target: RepoTarget): Promise<void> => {
+    const repoResponse = await fetch(
+      `https://api.github.com/repos/${target.owner}/${target.repo}`,
+      {
+        headers: {
+          Accept: 'application/vnd.github+json',
+          Authorization: `Bearer ${trimmedToken}`
+        }
+      }
+    )
+
+    if (!repoResponse.ok) {
+      const message = await parseGitHubError(
+        repoResponse,
+        `Repository check failed (${repoResponse.status}).`
+      )
+      throw new Error(message)
+    }
+  }
+
+  const handleSave = async (): Promise<void> => {
     const trimmedToken = token.trim()
-    const trimmedUsername = username.trim()
-    const trimmedRepo = repo.trim()
+    const trimmedRepoInput = repo.trim()
 
     if (!trimmedToken) {
       setConnectionState({
@@ -131,100 +226,74 @@ export default function GitHubSettings({
       return
     }
 
+    if (mode === 'repository' && !trimmedRepoInput) {
+      setConnectionState({
+        status: 'error',
+        message: 'Please enter repository name.'
+      })
+      return
+    }
+
     setConnectionState({
       status: 'loading',
-      message: 'Testing GitHub connection...'
+      message:
+        mode === 'repository'
+          ? 'Saving and verifying repository...'
+          : 'Saving account connection...'
     })
 
     try {
-      const response = await fetch('https://api.github.com/user', {
-        headers: {
-          Accept: 'application/vnd.github+json',
-          Authorization: `Bearer ${trimmedToken}`
-        }
+      const accountLogin = await resolveAccountLogin(trimmedToken)
+
+      let canonicalRepo = trimmedRepoInput
+      let isRepoVerified = false
+      let statusMessage = `Connected as ${accountLogin}. Account activity mode enabled.`
+
+      if (mode === 'repository') {
+        const target = resolveRepoTarget(trimmedRepoInput, accountLogin)
+        await verifyRepoAccess(trimmedToken, target)
+        canonicalRepo = `${target.owner}/${target.repo}`
+        isRepoVerified = true
+        statusMessage = `Connected. Repo access OK: ${canonicalRepo}`
+      }
+
+      const hasSavedToken = await window.electronAPI.setGitHubToken(trimmedToken)
+
+      if (!hasSavedToken) {
+        throw new Error('Unable to save token in secure storage. Check system keychain access.')
+      }
+
+      const verifiedAt = Date.now()
+
+      updateGitHubSettings({
+        githubMode: mode,
+        githubToken: trimmedToken,
+        githubUsername: accountLogin,
+        githubRepo: canonicalRepo,
+        localRepoPath: repoPath,
+        githubRepoVerified: isRepoVerified,
+        githubRepoVerifiedAt: isRepoVerified ? verifiedAt : null
       })
-
-      if (!response.ok) {
-        const message = await parseGitHubError(response, `Connection failed (${response.status}).`)
-        throw new Error(message)
-      }
-
-      const profile = (await response.json()) as { login?: string }
-      const resolvedUsername = trimmedUsername || profile.login || ''
-      setIsAuthVerified(true)
-
-      if (!username.trim() && profile.login) {
-        setUsername(profile.login)
-      }
-
-      if (resolvedUsername && trimmedRepo) {
-        const repoResponse = await fetch(
-          `https://api.github.com/repos/${resolvedUsername}/${trimmedRepo}`,
-          {
-            headers: {
-              Accept: 'application/vnd.github+json',
-              Authorization: `Bearer ${trimmedToken}`
-            }
-          }
-        )
-
-        if (!repoResponse.ok) {
-          const message = await parseGitHubError(
-            repoResponse,
-            `Repository check failed (${repoResponse.status}).`
-          )
-          throw new Error(message)
-        }
-
-        setConnectionState({
-          status: 'success',
-          message: `Connected. Repo access OK: ${resolvedUsername}/${trimmedRepo}`
-        })
-        setIsRepoAccessVerified(true)
-        return
-      }
 
       setConnectionState({
         status: 'success',
-        message: `Connected: ${profile.login ?? 'GitHub user'}`
+        message: statusMessage
       })
-      setIsRepoAccessVerified(false)
+      setIsAuthVerified(true)
+      setIsRepoAccessVerified(isRepoVerified)
+      setRepo(canonicalRepo)
+      onClose()
     } catch (error) {
       setConnectionState({
         status: 'error',
-        message: error instanceof Error ? error.message : 'Connection test failed.'
+        message: error instanceof Error ? error.message : 'Unable to save GitHub settings.'
       })
       setIsAuthVerified(false)
       setIsRepoAccessVerified(false)
     }
   }
 
-  const handleSave = async (): Promise<void> => {
-    const trimmedToken = token.trim()
-    const hasSavedToken = trimmedToken
-      ? await window.electronAPI.setGitHubToken(trimmedToken)
-      : await window.electronAPI.clearGitHubToken()
-
-    if (!hasSavedToken) {
-      setConnectionState({
-        status: 'error',
-        message: 'Unable to save token in secure storage. Check system keychain access.'
-      })
-      return
-    }
-
-    updateGitHubSettings({
-      githubToken: trimmedToken,
-      githubUsername: username,
-      githubRepo: repo,
-      localRepoPath: repoPath,
-      githubRepoVerified: isRepoAccessVerified,
-      githubRepoVerifiedAt: isRepoAccessVerified ? Date.now() : null
-    })
-    onClose()
-  }
-
-  const canSave = Boolean(token.trim() && username.trim() && repo.trim())
+  const canSave = Boolean(token.trim() && (mode === 'account' || repo.trim()))
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-[rgba(250,245,240,0.8)] px-4 py-6 backdrop-blur-sm">
@@ -237,6 +306,37 @@ export default function GitHubSettings({
         </div>
 
         <div className="space-y-3">
+          <div>
+            <p className="mb-1 text-xs text-[var(--terminal-muted)]">Activity Source</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                className={`terminal-btn ${mode === 'account' ? 'terminal-btn-primary' : 'terminal-btn-secondary'}`}
+                onClick={() => {
+                  setMode('account')
+                  setIsRepoAccessVerified(false)
+                  setConnectionState({ status: 'idle', message: '' })
+                }}
+                type="button"
+              >
+                Account
+              </button>
+              <button
+                className={`terminal-btn ${mode === 'repository' ? 'terminal-btn-primary' : 'terminal-btn-secondary'}`}
+                onClick={() => {
+                  setMode('repository')
+                  setConnectionState({ status: 'idle', message: '' })
+                }}
+                type="button"
+              >
+                Repository
+              </button>
+            </div>
+            <p className="mt-1 text-[11px] leading-relaxed text-[var(--terminal-dim)]">
+              Account mode shows profile-wide contribution graph. Repository mode adds repo-level
+              commits/PRs/issues.
+            </p>
+          </div>
+
           <label className="block text-xs text-[var(--terminal-muted)]" htmlFor="github-token">
             Token
             <input
@@ -257,38 +357,26 @@ export default function GitHubSettings({
             </p>
           </label>
 
-          <label className="block text-xs text-[var(--terminal-muted)]" htmlFor="github-username">
-            Username
-            <input
-              className="terminal-input mt-1 w-full px-3 py-2 text-sm outline-none transition-colors"
-              id="github-username"
-              onChange={(event) => {
-                setUsername(event.target.value)
-                setIsRepoAccessVerified(false)
-              }}
-              placeholder="your-github-username"
-              type="text"
-              value={username}
-            />
-          </label>
-
-          <label className="block text-xs text-[var(--terminal-muted)]" htmlFor="github-repo">
-            Repository
-            <input
-              className="terminal-input mt-1 w-full px-3 py-2 text-sm outline-none transition-colors"
-              id="github-repo"
-              onChange={(event) => {
-                setRepo(event.target.value)
-                setIsRepoAccessVerified(false)
-              }}
-              placeholder="Claudoro"
-              type="text"
-              value={repo}
-            />
-            <p className="mt-1 text-[11px] leading-relaxed text-[var(--terminal-dim)]">
-              Use only repository name, for example <code>Claudoro</code>.
-            </p>
-          </label>
+          {mode === 'repository' ? (
+            <label className="block text-xs text-[var(--terminal-muted)]" htmlFor="github-repo">
+              Repository
+              <input
+                className="terminal-input mt-1 w-full px-3 py-2 text-sm outline-none transition-colors"
+                id="github-repo"
+                onChange={(event) => {
+                  setRepo(event.target.value)
+                  setIsRepoAccessVerified(false)
+                }}
+                placeholder="Claudoro or starlash7/Claudoro"
+                type="text"
+                value={repo}
+              />
+              <p className="mt-1 text-[11px] leading-relaxed text-[var(--terminal-dim)]">
+                Enter <code>repo</code> or <code>owner/repo</code>. Repo is saved as{' '}
+                <code>owner/repo</code>.
+              </p>
+            </label>
+          ) : null}
 
           <label className="block text-xs text-[var(--terminal-muted)]" htmlFor="github-local-path">
             Local Repository Path
@@ -344,35 +432,21 @@ export default function GitHubSettings({
             {isRepoAccessVerified ? (
               <span className="inline-flex items-center gap-1 rounded border border-[var(--accent)] bg-[rgba(217,119,87,0.12)] px-2 py-1 text-[11px] font-semibold tracking-[0.05em] text-[var(--accent-strong)]">
                 <CheckCircle2 size={12} />
-                Repo Verified
+                Repo Mode Verified
               </span>
             ) : null}
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              className="terminal-btn terminal-btn-secondary"
-              onClick={() => {
-                void handleConnectionTest()
-              }}
-              type="button"
-            >
-              <span className="flex items-center gap-1.5">
-                <TestTubeDiagonal size={14} /> Test Connection
-              </span>
-            </button>
-
-            <button
-              className="terminal-btn terminal-btn-primary"
-              disabled={!canSave || connectionState.status === 'loading'}
-              onClick={() => {
-                void handleSave()
-              }}
-              type="button"
-            >
-              Save
-            </button>
-          </div>
+          <button
+            className="terminal-btn terminal-btn-primary"
+            disabled={!canSave || connectionState.status === 'loading'}
+            onClick={() => {
+              void handleSave()
+            }}
+            type="button"
+          >
+            Save & Connect
+          </button>
         </div>
       </div>
     </div>

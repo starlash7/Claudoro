@@ -2,9 +2,12 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 export const SETTINGS_STORAGE_KEY = 'claudoro_settings'
-const SETTINGS_STORAGE_VERSION = 2
+const SETTINGS_STORAGE_VERSION = 3
+
+export type GitHubMode = 'account' | 'repository'
 
 export interface GitHubSettings {
+  githubMode: GitHubMode
   githubToken: string
   githubUsername: string
   githubRepo: string
@@ -15,6 +18,7 @@ export interface GitHubSettings {
 }
 
 interface SettingsState extends GitHubSettings {
+  setGitHubMode: (mode: GitHubMode) => void
   setGitHubToken: (token: string) => void
   setGitHubUsername: (username: string) => void
   setGitHubRepo: (repo: string) => void
@@ -25,6 +29,7 @@ interface SettingsState extends GitHubSettings {
 }
 
 const defaultSettings: GitHubSettings = {
+  githubMode: 'repository',
   githubToken: '',
   githubUsername: '',
   githubRepo: '',
@@ -35,13 +40,33 @@ const defaultSettings: GitHubSettings = {
 }
 
 const getEnabledState = (settings: Partial<GitHubSettings>): boolean => {
-  return Boolean(settings.githubToken && settings.githubUsername && settings.githubRepo)
+  const mode = settings.githubMode ?? 'repository'
+  const hasIdentity = Boolean(settings.githubToken && settings.githubUsername)
+
+  if (!hasIdentity) {
+    return false
+  }
+
+  return mode === 'repository' ? Boolean(settings.githubRepo) : true
 }
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
       ...defaultSettings,
+      setGitHubMode: (mode) => {
+        const next = {
+          ...get(),
+          githubMode: mode
+        }
+
+        set({
+          githubMode: mode,
+          isGitHubEnabled: getEnabledState(next),
+          githubRepoVerified: false,
+          githubRepoVerifiedAt: null
+        })
+      },
       setGitHubToken: (token) => {
         const next = {
           ...get(),
@@ -94,6 +119,7 @@ export const useSettingsStore = create<SettingsState>()(
         const next = {
           ...current,
           ...settings,
+          githubMode: settings.githubMode ?? current.githubMode,
           githubToken: settings.githubToken?.trim() ?? current.githubToken,
           githubUsername: settings.githubUsername?.trim() ?? current.githubUsername,
           githubRepo: settings.githubRepo?.trim() ?? current.githubRepo,
@@ -101,6 +127,7 @@ export const useSettingsStore = create<SettingsState>()(
         }
 
         const identityChanged =
+          current.githubMode !== next.githubMode ||
           current.githubToken !== next.githubToken ||
           current.githubUsername !== next.githubUsername ||
           current.githubRepo !== next.githubRepo
@@ -140,12 +167,14 @@ export const useSettingsStore = create<SettingsState>()(
         return {
           ...defaultSettings,
           ...state,
+          githubMode: state.githubMode ?? 'repository',
           githubToken: state.githubToken ?? '',
           githubRepoVerified: state.githubRepoVerified ?? false,
           githubRepoVerifiedAt: state.githubRepoVerifiedAt ?? null
         }
       },
       partialize: (state) => ({
+        githubMode: state.githubMode,
         githubUsername: state.githubUsername,
         githubRepo: state.githubRepo,
         localRepoPath: state.localRepoPath,

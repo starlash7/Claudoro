@@ -33,14 +33,15 @@ It is designed to help you stay in flow, finish more deep work, and keep momentu
 
 ## Focus Modes
 
-| Mode | Duration | Purpose |
-| --- | --- | --- |
-| Focus (Pomodoro) | 25 min | Deep work sprint |
-| Short Break | 5 min | Quick reset |
-| Long Break | 15 min | Recovery after cycles |
-| Deep Focus | Unlimited | Manual, uninterrupted flow |
+| Mode             | Duration  | Purpose                    |
+| ---------------- | --------- | -------------------------- |
+| Focus (Pomodoro) | 25 min    | Deep work sprint           |
+| Short Break      | 5 min     | Quick reset                |
+| Long Break       | 15 min    | Recovery after cycles      |
+| Deep Focus       | Unlimited | Manual, uninterrupted flow |
 
 Cycle logic:
+
 - After each Focus session: Short Break
 - Every 4th Focus completion: Long Break
 - After a break: back to Focus
@@ -68,8 +69,12 @@ npm run build
 ## GitHub Connection (Optional)
 
 1. Open `Settings` in Claudoro.
-2. Enter your GitHub token, username, and repository.
-3. Save and refresh the GitHub panel.
+2. Choose mode:
+   - `Account`: profile-wide contribution graph
+   - `Repository`: repo-level commits, PRs, issues
+3. Enter your GitHub token.
+4. If using Repository mode, enter repository (`repo` or `owner/repo`).
+5. Save and refresh the GitHub panel.
 
 GitHub token is stored in your OS secure keychain. Other GitHub settings are stored locally on your device.
 

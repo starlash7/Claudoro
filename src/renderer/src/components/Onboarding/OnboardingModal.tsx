@@ -20,7 +20,7 @@ const steps: StepItem[] = [
   {
     id: 'github',
     title: 'Connect GitHub',
-    description: 'Add your token, username, and repository in Settings.'
+    description: 'Connect GitHub and choose Account mode or Repository mode in Settings.'
   },
   {
     id: 'repo',
@@ -48,14 +48,13 @@ export default function OnboardingModal({
   onOpenSettings
 }: OnboardingModalProps): React.JSX.Element | null {
   const isGitHubEnabled = useSettingsStore((state) => state.isGitHubEnabled)
-  const githubRepoVerified = useSettingsStore((state) => state.githubRepoVerified)
   const localRepoPath = useSettingsStore((state) => state.localRepoPath)
 
   const [stepIndex, setStepIndex] = useState(0)
   const [notificationPermission, setNotificationPermission] =
     useState<NotificationPermission>(getPermission())
 
-  const isGitHubStepDone = isGitHubEnabled && githubRepoVerified
+  const isGitHubStepDone = isGitHubEnabled
   const isRepoPathStepDone = localRepoPath.trim().length > 0
   const isNotificationStepDone = notificationPermission === 'granted'
 
