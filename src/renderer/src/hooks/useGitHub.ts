@@ -42,7 +42,6 @@ interface UseGitHubResult {
 
 const CACHE_TTL_MS = 5 * 60 * 1000
 const REFRESH_INTERVAL_MS = 15 * 60 * 1000
-const CONTRIBUTION_LOOKBACK_DAYS = 364
 
 const queryCache = new Map<string, { expiresAt: number; value: unknown }>()
 
@@ -59,14 +58,27 @@ const toLocalDateKey = (date: Date): string => {
   return localDate.toISOString().slice(0, 10)
 }
 
-const buildRecentDateKeys = (days = 7): string[] => {
-  const today = new Date()
+const buildDateKeysBetween = (start: Date, end: Date): string[] => {
+  const keys: string[] = []
+  const cursor = new Date(start)
 
-  return Array.from({ length: days }, (_, index) => {
-    const date = new Date(today)
-    date.setDate(today.getDate() - (days - 1 - index))
-    return toLocalDateKey(date)
-  })
+  while (cursor <= end) {
+    keys.push(toLocalDateKey(cursor))
+    cursor.setDate(cursor.getDate() + 1)
+  }
+
+  return keys
+}
+
+const getContributionRange = (): { start: Date; end: Date } => {
+  const now = new Date()
+  const start = new Date(now.getFullYear() - 1, 0, 1)
+  start.setHours(0, 0, 0, 0)
+
+  const end = new Date(now)
+  end.setHours(23, 59, 59, 999)
+
+  return { start, end }
 }
 
 const getCached = <T>(key: string): T | null => {
@@ -377,18 +389,12 @@ const fetchContributions = async (
   username: string,
   token: string
 ): Promise<ContributionSnapshot> => {
-  const fullDateKeys = buildRecentDateKeys(CONTRIBUTION_LOOKBACK_DAYS)
+  const { start, end } = getContributionRange()
+  const fullDateKeys = buildDateKeysBetween(start, end)
   const weeklyDateKeys = fullDateKeys.slice(-7)
   const authKey = tokenCacheKey(token)
 
   return fetchWithCache(`contrib-snapshot:${username}:${authKey}`, async () => {
-    const from = new Date()
-    from.setDate(from.getDate() - (CONTRIBUTION_LOOKBACK_DAYS - 1))
-    from.setHours(0, 0, 0, 0)
-
-    const to = new Date()
-    to.setHours(23, 59, 59, 999)
-
     const response = await fetchGitHubGraphQL<ContributionCalendarQuery>(
       `query($login: String!, $from: DateTime!, $to: DateTime!) {
         user(login: $login) {
@@ -406,8 +412,8 @@ const fetchContributions = async (
       }`,
       {
         login: username,
-        from: from.toISOString(),
-        to: to.toISOString()
+        from: start.toISOString(),
+        to: end.toISOString()
       },
       token
     )

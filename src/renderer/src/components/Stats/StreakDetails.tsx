@@ -6,6 +6,11 @@ interface StreakDetailsProps {
   summaryLabel: string
   tooltipSuffix?: string
   colorScale: number[]
+  dateRange?: {
+    start: string
+    end: string
+  }
+  showYearLabels?: boolean
 }
 
 interface CellData {
@@ -22,9 +27,37 @@ const dateKey = (date: Date): string => {
   return localDate.toISOString().slice(0, 10)
 }
 
-const buildCells = (activityByDate: Record<string, number>): CellData[] => {
+const parseDateKey = (key: string): Date => {
+  const [year, month, day] = key.split('-').map(Number)
+  return new Date(year, (month || 1) - 1, day || 1)
+}
+
+const buildCells = (
+  activityByDate: Record<string, number>,
+  range?: { start: string; end: string }
+): CellData[] => {
   const today = new Date()
   const todayKey = dateKey(today)
+
+  if (range) {
+    const cells: CellData[] = []
+    const start = parseDateKey(range.start)
+    const end = parseDateKey(range.end)
+    const cursor = new Date(start)
+
+    while (cursor <= end) {
+      const key = dateKey(cursor)
+      cells.push({
+        dateKey: key,
+        value: activityByDate[key] ?? 0,
+        isFuture: key > todayKey
+      })
+      cursor.setDate(cursor.getDate() + 1)
+    }
+
+    return cells
+  }
+
   const endOfWeek = new Date(today)
   endOfWeek.setDate(today.getDate() + (6 - today.getDay()))
 
@@ -69,6 +102,22 @@ const buildMonthLabels = (weekColumns: CellData[][]): string[] => {
   })
 }
 
+const buildYearLabels = (weekColumns: CellData[][]): string[] => {
+  let lastYear = -1
+
+  return weekColumns.map((week) => {
+    const date = new Date(`${week[0].dateKey}T00:00:00`)
+    const year = date.getFullYear()
+
+    if (year !== lastYear) {
+      lastYear = year
+      return String(year)
+    }
+
+    return ''
+  })
+}
+
 const getHeatColor = (value: number, colorScale: number[]): string => {
   if (value <= 0) {
     return '#fff4ef'
@@ -93,12 +142,18 @@ export default function StreakDetails({
   title,
   summaryLabel,
   tooltipSuffix = '',
-  colorScale
+  colorScale,
+  dateRange,
+  showYearLabels = false
 }: StreakDetailsProps): React.JSX.Element {
-  const cells = buildCells(activityByDate)
+  const cells = buildCells(activityByDate, dateRange)
   const weekColumns = buildWeekColumns(cells)
   const monthLabels = buildMonthLabels(weekColumns)
+  const yearLabels = buildYearLabels(weekColumns)
   const totalActivity = cells.reduce((sum, cell) => sum + cell.value, 0)
+  const summaryRangeText = dateRange
+    ? `${dateRange.start} to ${dateRange.end}`
+    : `last ${WEEKS_TO_SHOW} weeks`
 
   return (
     <section className="terminal-card p-3">
@@ -112,6 +167,16 @@ export default function StreakDetails({
       </div>
 
       <div className="terminal-soft-card overflow-x-auto p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+        {showYearLabels ? (
+          <div className="mb-1 flex min-w-max gap-1 pl-5 text-[10px] font-semibold text-[var(--terminal-dim)]">
+            {yearLabels.map((label, index) => (
+              <div className="w-3" key={`year-${index}`}>
+                {label}
+              </div>
+            ))}
+          </div>
+        ) : null}
+
         <div className="mb-2 flex min-w-max gap-1 pl-5 text-[10px] text-[var(--terminal-dim)]">
           {monthLabels.map((label, index) => (
             <div className="w-3" key={`month-${index}`}>
@@ -151,7 +216,7 @@ export default function StreakDetails({
 
         <div className="mt-3 flex items-center justify-between gap-2 text-[10px] text-[var(--terminal-dim)]">
           <p>
-            {totalActivity} {summaryLabel} in the last {WEEKS_TO_SHOW} weeks
+            {totalActivity} {summaryLabel} in {summaryRangeText}
           </p>
           <div className="flex items-center gap-1">
             <span>Less</span>

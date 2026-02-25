@@ -23,6 +23,11 @@ interface StreakViewModel {
   summaryLabel: string
   tooltipSuffix: string
   colorScale: number[]
+  dateRange?: {
+    start: string
+    end: string
+  }
+  showYearLabels?: boolean
 }
 
 const parseValue = (value: string): ParsedValue => {
@@ -159,6 +164,14 @@ export default function Stats(): React.JSX.Element {
 
     if (streakSource === 'github') {
       const activeDates = buildActiveDateSet(githubActivityByDate)
+      const dateRange =
+        metrics.contributionDays.length > 0
+          ? {
+              start: metrics.contributionDays[0].date,
+              end: metrics.contributionDays[metrics.contributionDays.length - 1].date
+            }
+          : undefined
+
       return {
         activityByDate: githubActivityByDate,
         currentStreak: getCurrentStreak(activeDates),
@@ -166,7 +179,9 @@ export default function Stats(): React.JSX.Element {
         title: 'GitHub Activity Heatmap',
         summaryLabel: 'contributions',
         tooltipSuffix: 'c',
-        colorScale: [1, 2, 4, 8]
+        colorScale: [1, 2, 4, 8],
+        dateRange,
+        showYearLabels: true
       }
     }
 
@@ -257,7 +272,9 @@ export default function Stats(): React.JSX.Element {
         activityByDate={streakView.activityByDate}
         colorScale={streakView.colorScale}
         currentStreak={streakView.currentStreak}
+        dateRange={streakView.dateRange}
         longestStreak={streakView.longestStreak}
+        showYearLabels={streakView.showYearLabels}
         summaryLabel={streakView.summaryLabel}
         title={streakView.title}
         tooltipSuffix={streakView.tooltipSuffix}
