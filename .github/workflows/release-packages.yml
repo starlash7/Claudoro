@@ -11,13 +11,13 @@ jobs:
         include:
           - os: ubuntu-latest
             target: linux
-            command: npm run build:linux
+            command: npm run build:linux -- --publish never
           - os: windows-latest
             target: windows
-            command: npm run build:win
+            command: npm run build:win -- --publish never
           - os: macos-latest
             target: macos
-            command: npm run build:mac
+            command: npm run build:mac -- --publish never
 
     runs-on: ${{ matrix.os }}
     env:
@@ -45,4 +45,3 @@ jobs:
           name: claudoro-${{ matrix.target }}
           path: dist/**
           if-no-files-found: warn
-
