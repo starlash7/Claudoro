@@ -9,8 +9,31 @@
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-Design-000000?style=flat&logo=tailwindcss&logoColor=white&labelColor=06B6D4)
 ![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows%20%7C%20Linux-D97757?style=flat&labelColor=000000)
 
+Developer focus timer with GitHub activity sync.
+
 Claudoro is a desktop focus companion with a terminal-inspired interface, a Claude-style mascot, and practical session tracking.
 It is designed to help you stay in flow, finish more deep work, and keep momentum visible every day.
+
+## Launch Positioning
+
+Claudoro helps developers protect focus time and see progress in one place by combining a clean timer flow with GitHub activity context.
+
+## Discoverability Setup (GitHub)
+
+Set your repository metadata like this:
+
+- **Description**: `Developer focus timer with GitHub activity sync for visible daily momentum.`
+- **Topics**: `pomodoro`, `focus-timer`, `electron`, `react`, `productivity`, `developer-tools`, `github-integration`
+
+Promotion channels:
+
+- Show HN
+- Reddit (`r/programming`, `r/productivity`, `r/SideProject`)
+- X (Twitter)
+- Dev.to
+- Product Hunt
+
+Launch copy templates are in `docs/LAUNCH_PLAYBOOK.md`.
 
 ## Product Highlights
 
@@ -86,6 +109,7 @@ GitHub token is stored in your OS secure keychain. Other GitHub settings are sto
 
 - QA checklist: `docs/RELEASE_QA_CHECKLIST.md`
 - Pipeline guide: `docs/RELEASE_PIPELINE.md`
+- Launch playbook: `docs/LAUNCH_PLAYBOOK.md`
 
 ## Roadmap
 
