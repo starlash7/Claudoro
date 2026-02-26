@@ -11,7 +11,7 @@ jobs:
         include:
           - os: macos-latest
             target: mac
-            command: npm run build:mac -- --publish never
+            command: npm run build:mac -- --publish never --config.mac.hardenedRuntime=false --config.mac.gatekeeperAssess=false
           - os: windows-latest
             target: win
             command: npm run build:win -- --publish never

@@ -49,6 +49,7 @@ Behavior:
 - Builds with `--publish never`
 - Uploads only GitHub Actions artifacts (not GitHub Releases assets)
 - Use this only for internal QA and debugging
+- macOS unsigned build disables hardened runtime (`--config.mac.hardenedRuntime=false`) so ad-hoc artifacts can launch.
 
 ## Signed Packaging (manual)
 
