@@ -16,11 +16,26 @@ It is designed to help you stay in flow, finish more deep work, and keep momentu
 
 ## Quick Links
 
-- [Download for macOS](https://github.com/starlash7/Claudoro/releases/latest)
-- [Download for Windows](https://github.com/starlash7/Claudoro/releases/latest)
 - [Star on GitHub](https://github.com/starlash7/Claudoro)
+- [Issues / Feedback](https://github.com/starlash7/Claudoro/issues)
 
-Public installers should be published from `.github/workflows/release-signed.yml` (signed + notarized on macOS).
+## Primary Distribution: Run From Source
+
+Claudoro is now distributed primarily as an open-source repo workflow:
+`clone -> npm install -> npm run dev`
+
+```bash
+git clone https://github.com/starlash7/Claudoro.git
+cd Claudoro
+npm install
+npm run dev
+```
+
+Local production build:
+
+```bash
+npm run build
+```
 
 ## Launch Positioning
 
@@ -42,6 +57,14 @@ Promotion channels:
 - Product Hunt
 
 Launch copy templates are in `docs/LAUNCH_PLAYBOOK.md`.
+
+## Open Source Growth Loop
+
+1. Keep repository description and topics up to date.
+2. Ship one visible improvement every week and post changelog screenshots.
+3. Convert issues into public roadmap milestones.
+4. Ask for specific feedback in every launch post (onboarding, timer UX, GitHub sync).
+5. Pin the repo and post progress clips on X/Reddit/Dev.to consistently.
 
 ## Product Highlights
 
@@ -115,8 +138,8 @@ GitHub token is stored in your OS secure keychain. Other GitHub settings are sto
 
 ## Release Docs
 
-- QA checklist: `docs/RELEASE_QA_CHECKLIST.md`
-- Pipeline guide: `docs/RELEASE_PIPELINE.md`
+- QA checklist: `docs/RELEASE_QA_CHECKLIST.md` (optional, release mode)
+- Pipeline guide: `docs/RELEASE_PIPELINE.md` (optional, release mode)
 - Launch playbook: `docs/LAUNCH_PLAYBOOK.md`
 
 ## Roadmap
