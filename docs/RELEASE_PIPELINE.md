@@ -31,7 +31,7 @@ Artifacts:
 
 - Uploads `dist/**` for each target as workflow artifacts.
 
-## Draft Release Upload (manual)
+## Unsigned Draft Build (manual, internal QA only)
 
 Workflow: `.github/workflows/release-draft.yml`
 
@@ -41,14 +41,14 @@ Trigger:
 
 Targets:
 
-- macOS package + upload to GitHub draft release
-- Windows package + upload to GitHub draft release
+- macOS unsigned package
+- Windows unsigned package
 
 Behavior:
 
-- Uses `GH_TOKEN=${{ github.token }}` (no extra secret required)
-- Publishes release assets with `electron-builder --publish always`
-- Keeps release type as `draft` based on `electron-builder.yml`
+- Builds with `--publish never`
+- Uploads only GitHub Actions artifacts (not GitHub Releases assets)
+- Use this only for internal QA and debugging
 
 ## Signed Packaging (manual)
 
@@ -62,7 +62,6 @@ Required repository secrets:
 - `CSC_KEY_PASSWORD_MAC`
 - `CSC_LINK_WIN`
 - `CSC_KEY_PASSWORD_WIN`
-- `GH_TOKEN`
 - `APPLE_ID` (macOS only)
 - `APPLE_APP_SPECIFIC_PASSWORD` (macOS only)
 - `APPLE_TEAM_ID` (macOS only)
@@ -71,15 +70,25 @@ Workflow behavior:
 
 - Secret validation runs before dependency install.
 - If required secrets are missing, the job fails fast with explicit secret names.
+- Uses `github.token` automatically for release upload.
 
 Targets:
 
-- Signed macOS package (`npm run build:mac -- --publish never --config.mac.notarize=true`)
-- Signed Windows package (`npm run build:win -- --publish never`)
+- Signed + notarized macOS package (`npm run build:mac -- --publish always --config.mac.notarize=true`)
+- Signed Windows package (`npm run build:win -- --publish always`)
 
 Artifacts:
 
 - Uploads signed `dist/**` artifacts per platform.
+- Also publishes installers to GitHub Draft Release.
+- macOS gate checks: rejects ad-hoc signature and validates DMG stapling.
+- Windows gate checks: fails if Authenticode status is not `Valid`.
+
+## Production Rule
+
+- Public downloads must come from `release-signed.yml` output.
+- Do not publish unsigned assets for end users.
+- Unsigned builds will trigger macOS Gatekeeper warnings and weaker Windows trust.
 
 ## Release QA Gate
 

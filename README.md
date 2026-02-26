@@ -20,6 +20,8 @@ It is designed to help you stay in flow, finish more deep work, and keep momentu
 - [Download for Windows](https://github.com/starlash7/Claudoro/releases/latest)
 - [Star on GitHub](https://github.com/starlash7/Claudoro)
 
+Public installers should be published from `.github/workflows/release-signed.yml` (signed + notarized on macOS).
+
 ## Launch Positioning
 
 Claudoro helps developers protect focus time and see progress in one place by combining a clean timer flow with GitHub activity context.

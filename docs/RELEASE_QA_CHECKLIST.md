@@ -57,3 +57,10 @@ Run this checklist before every tagged release.
 - [ ] `npm run lint`
 - [ ] `npm run typecheck`
 - [ ] `npm run build`
+
+## 8) Installer Trust Validation (Production Release)
+
+- [ ] Run `.github/workflows/release-signed.yml` (not `release-draft.yml`)
+- [ ] macOS job output includes non-adhoc signature and successful `xcrun stapler validate`
+- [ ] Windows job output shows `Get-AuthenticodeSignature` status = `Valid`
+- [ ] Download from GitHub Releases and verify install succeeds on clean macOS + Windows machines

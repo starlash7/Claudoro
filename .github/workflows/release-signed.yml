@@ -1,13 +1,16 @@
-name: Release Signed
+name: Release Signed (macOS + Windows)
 
 on:
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   signed-macos:
     runs-on: macos-latest
     env:
-      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
       CSC_LINK: ${{ secrets.CSC_LINK_MAC }}
       CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD_MAC }}
       APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -42,7 +45,35 @@ jobs:
         run: npm ci
 
       - name: Build signed macOS package
-        run: npm run build:mac -- --publish never --config.mac.notarize=true
+        run: npm run build:mac -- --publish always --config.mac.notarize=true
+
+      - name: Verify macOS signature + notarization
+        run: |
+          set -euo pipefail
+          APP_PATH="$(find dist -type d -name 'Claudoro.app' | head -n 1)"
+          if [[ -z "${APP_PATH}" ]]; then
+            echo "::error::Claudoro.app not found in dist"
+            exit 1
+          fi
+
+          echo "Checking code signature: ${APP_PATH}"
+          SIGN_INFO="$(codesign -dv --verbose=4 "$APP_PATH" 2>&1 || true)"
+          echo "$SIGN_INFO"
+          if echo "$SIGN_INFO" | grep -q "Signature=adhoc"; then
+            echo "::error::Ad-hoc signature detected. macOS build is not properly signed."
+            exit 1
+          fi
+
+          spctl --assess --type execute -vv "$APP_PATH"
+
+          DMG_PATH="$(find dist -maxdepth 2 -name '*.dmg' | head -n 1)"
+          if [[ -z "${DMG_PATH}" ]]; then
+            echo "::error::Signed DMG not found in dist"
+            exit 1
+          fi
+
+          echo "Validating notarization staple: ${DMG_PATH}"
+          xcrun stapler validate "$DMG_PATH"
 
       - name: Upload signed macOS artifacts
         uses: actions/upload-artifact@v4
@@ -54,7 +85,7 @@ jobs:
   signed-windows:
     runs-on: windows-latest
     env:
-      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
       CSC_LINK: ${{ secrets.CSC_LINK_WIN }}
       CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD_WIN }}
 
@@ -83,7 +114,26 @@ jobs:
         run: npm ci
 
       - name: Build signed Windows package
-        run: npm run build:win -- --publish never
+        run: npm run build:win -- --publish always
+
+      - name: Verify Windows Authenticode signature
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem dist -Recurse -Filter *setup.exe | Select-Object -First 1
+          if (-not $setup) {
+            throw "Signed setup exe not found in dist."
+          }
+
+          $signature = Get-AuthenticodeSignature $setup.FullName
+          Write-Host "Installer: $($setup.FullName)"
+          Write-Host "Signature status: $($signature.Status)"
+          if ($signature.SignerCertificate) {
+            Write-Host "Signer subject: $($signature.SignerCertificate.Subject)"
+          }
+
+          if ($signature.Status -ne "Valid") {
+            throw "Windows installer signature is not valid."
+          }
 
       - name: Upload signed Windows artifacts
         uses: actions/upload-artifact@v4
