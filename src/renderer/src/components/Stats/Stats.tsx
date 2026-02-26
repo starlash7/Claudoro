@@ -236,8 +236,8 @@ export default function Stats(): React.JSX.Element {
 
             return (
               <button
-                className={`terminal-tab w-full px-2 py-1.5 text-[11px] font-semibold tracking-[0.06em] ${
-                  isActive ? 'terminal-tab-active' : ''
+                className={`terminal-toggle-btn w-full px-2 py-1.5 text-[11px] font-semibold tracking-[0.06em] ${
+                  isActive ? 'terminal-toggle-btn-active' : ''
                 }`}
                 key={option.id}
                 onClick={() => {

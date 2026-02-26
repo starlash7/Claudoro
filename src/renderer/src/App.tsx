@@ -216,7 +216,7 @@ function App(): React.JSX.Element {
                 <GoalInput />
                 <ModeSelector />
 
-                <section className="terminal-hud-panel flex flex-col items-center justify-center gap-3 px-3 py-4 sm:px-4">
+                <section className="terminal-hud-panel flex flex-col items-center justify-start gap-2 px-3 py-4 sm:px-4">
                   <TimerDisplay />
                   <Controls />
                 </section>

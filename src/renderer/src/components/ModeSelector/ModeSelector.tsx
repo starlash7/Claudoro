@@ -19,10 +19,8 @@ export default function ModeSelector(): React.JSX.Element {
 
         return (
           <button
-            className={`rounded-[9px] border px-2 py-2 text-[11px] font-semibold tracking-[0.04em] transition-colors sm:text-[12px] ${
-              isActive
-                ? 'border-[var(--accent)] bg-[rgba(217,119,87,0.14)] text-[var(--accent-strong)] shadow-[inset_0_0_0_1px_rgba(217,119,87,0.22)]'
-                : 'border-[var(--terminal-border-soft)] bg-white text-[var(--terminal-muted)] hover:border-[var(--terminal-border)] hover:bg-[rgba(217,119,87,0.07)] hover:text-[var(--terminal-text)]'
+            className={`terminal-toggle-btn px-2 py-2 text-[11px] font-semibold tracking-[0.04em] sm:text-[12px] ${
+              isActive ? 'terminal-toggle-btn-active' : ''
             }`}
             key={targetMode}
             onClick={() => {

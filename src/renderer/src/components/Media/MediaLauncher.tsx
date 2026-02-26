@@ -117,6 +117,13 @@ export default function MediaLauncher(): React.JSX.Element {
         </div>
       </div>
 
+      <div className="terminal-soft-card mt-3 min-h-[150px] p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+        <p className="terminal-kicker">Upcoming Updates</p>
+        <div className="mt-2 space-y-1.5 text-xs text-[var(--terminal-muted)]">
+          <p>More music integrations and playback controls will be added soon.</p>
+        </div>
+      </div>
+
       <div className="mt-2 min-h-4 text-[11px] text-[var(--terminal-muted)]">{status}</div>
     </section>
   )
