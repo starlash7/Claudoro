@@ -1,4 +1,4 @@
-# 🦞 Claudoro — Open-Source Developer Focus Timer
+# 🦞 Claudoro: Open-Source Developer Focus Timer
 
 ![Electron](https://img.shields.io/badge/Electron-Desktop-000000?style=flat&logo=electron&logoColor=white&labelColor=47848F)
 ![React](https://img.shields.io/badge/React-UI-000000?style=flat&logo=react&logoColor=61DAFB&labelColor=20232A)
