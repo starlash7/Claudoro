@@ -2,12 +2,23 @@ name: Release Signed (macOS + Windows)
 
 on:
   workflow_dispatch:
+    inputs:
+      target:
+        description: Target platform to release
+        required: true
+        default: windows
+        type: choice
+        options:
+          - windows
+          - macos
+          - all
 
 permissions:
   contents: write
 
 jobs:
   signed-macos:
+    if: ${{ github.event.inputs.target == 'macos' || github.event.inputs.target == 'all' }}
     runs-on: macos-latest
     env:
       GH_TOKEN: ${{ github.token }}
@@ -83,6 +94,7 @@ jobs:
           if-no-files-found: warn
 
   signed-windows:
+    if: ${{ github.event.inputs.target == 'windows' || github.event.inputs.target == 'all' }}
     runs-on: windows-latest
     env:
       GH_TOKEN: ${{ github.token }}

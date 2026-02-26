@@ -57,15 +57,23 @@ Workflow: `.github/workflows/release-signed.yml`
 
 Use this workflow when preparing store-distributable binaries.
 
+Dispatch input:
+
+- `target=windows` (default): Windows signed release only
+- `target=macos`: macOS signed + notarized release only
+- `target=all`: run both platforms
+
 Required repository secrets:
 
-- `CSC_LINK_MAC`
-- `CSC_KEY_PASSWORD_MAC`
-- `CSC_LINK_WIN`
-- `CSC_KEY_PASSWORD_WIN`
-- `APPLE_ID` (macOS only)
-- `APPLE_APP_SPECIFIC_PASSWORD` (macOS only)
-- `APPLE_TEAM_ID` (macOS only)
+- Always needed for `target=windows` or `target=all`:
+  - `CSC_LINK_WIN`
+  - `CSC_KEY_PASSWORD_WIN`
+- Needed for `target=macos` or `target=all`:
+  - `CSC_LINK_MAC`
+  - `CSC_KEY_PASSWORD_MAC`
+  - `APPLE_ID`
+  - `APPLE_APP_SPECIFIC_PASSWORD`
+  - `APPLE_TEAM_ID`
 
 Workflow behavior:
 
