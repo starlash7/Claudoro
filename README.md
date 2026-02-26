@@ -1,28 +1,29 @@
-# 🦞 Claudoro — Focus Terminal for Builders
-
-**Claudoro**
-
-**LOCK IN. SHIP. REPEAT.**
+# 🦞 Claudoro — Open-Source Developer Focus Timer
 
 ![Electron](https://img.shields.io/badge/Electron-Desktop-000000?style=flat&logo=electron&logoColor=white&labelColor=47848F)
 ![React](https://img.shields.io/badge/React-UI-000000?style=flat&logo=react&logoColor=61DAFB&labelColor=20232A)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-Design-000000?style=flat&logo=tailwindcss&logoColor=white&labelColor=06B6D4)
 ![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows%20%7C%20Linux-D97757?style=flat&labelColor=000000)
 
-Developer focus timer with GitHub activity sync.
-
-Claudoro is a desktop focus companion with a terminal-inspired interface, a Claude-style mascot, and practical session tracking.
-It is designed to help you stay in flow, finish more deep work, and keep momentum visible every day.
+Claudoro is an open-source desktop focus timer for developers, built with Electron + React.
+It combines Pomodoro and deep-focus timing with GitHub activity context in one terminal-style UI.
 
 ## Quick Links
 
 - [Star on GitHub](https://github.com/starlash7/Claudoro)
 - [Issues / Feedback](https://github.com/starlash7/Claudoro/issues)
 
-## Primary Distribution: Run From Source
+## Why Claudoro
 
-Claudoro is now distributed primarily as an open-source repo workflow:
-`clone -> npm install -> npm run dev`
+- Terminal-inspired developer UX (clear, minimal, low-noise)
+- Focus modes: Pomodoro / Short Break / Long Break / Deep Focus
+- Session stats + streak tracking
+- Optional GitHub integration for contributions and activity context
+- Local-first setup via `npm install` and `npm run dev`
+
+## Run From Source (Primary Distribution)
+
+Prerequisite: Node.js 22+
 
 ```bash
 git clone https://github.com/starlash7/Claudoro.git
@@ -31,15 +32,11 @@ npm install
 npm run dev
 ```
 
-Local production build:
+Production build:
 
 ```bash
 npm run build
 ```
-
-## Launch Positioning
-
-Claudoro helps developers protect focus time and see progress in one place by combining a clean timer flow with GitHub activity context.
 
 ## Discoverability Setup (GitHub)
 
@@ -70,16 +67,12 @@ Launch copy templates are in `docs/LAUNCH_PLAYBOOK.md`.
 
 - **Focused timer modes**
   Pomodoro, Short Break, Long Break, and Deep Focus (count-up mode).
-
 - **Mascot-driven feedback**
   The mascot reacts to your current state: idle, focusing, break, and complete.
-
 - **Daily goal flow**
   Set today’s goal, mark it complete, and review goal history over time.
-
 - **Streak and progress visibility**
   Track completed sessions, focus minutes, and streak performance in one view.
-
 - **GitHub context (optional)**
   Connect GitHub to see commits, PRs, and issue context while you work.
   The streak heatmap is shown as a full current-year view (January to December).
@@ -99,25 +92,11 @@ Cycle logic:
 - Every 4th Focus completion: Long Break
 - After a break: back to Focus
 
-## Why People Use Claudoro
+## Who It's For
 
-- You want a **clean, non-distracting desktop timer**.
-- You prefer a **terminal aesthetic** over gamified clutter.
-- You care about **visible momentum** (stats, streaks, daily intent).
-- You want lightweight **GitHub-aware focus context** in the same app.
-
-## Getting Started
-
-```bash
-npm install
-npm run dev
-```
-
-Production build:
-
-```bash
-npm run build
-```
+- Developers who want a clean desktop Pomodoro timer
+- Builders who prefer terminal-style interfaces over gamified UIs
+- People who want focus stats and GitHub context in one app
 
 ## GitHub Connection (Optional)
 

@@ -1,7 +1,7 @@
 {
   "name": "claudoro",
   "version": "1.0.2",
-  "description": "An Electron application with React and TypeScript",
+  "description": "Open-source desktop focus timer for developers with Pomodoro modes and GitHub activity sync.",
   "main": "./out/main/index.js",
   "author": "claudoro",
   "homepage": ".",
@@ -32,6 +32,15 @@
     "tailwindcss": "^4.2.0",
     "zustand": "^5.0.11"
   },
+  "keywords": [
+    "pomodoro",
+    "focus-timer",
+    "developer-tools",
+    "electron",
+    "react",
+    "productivity",
+    "github-integration"
+  ],
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.1.0",
