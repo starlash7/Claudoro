@@ -31,6 +31,25 @@ Artifacts:
 
 - Uploads `dist/**` for each target as workflow artifacts.
 
+## Draft Release Upload (manual)
+
+Workflow: `.github/workflows/release-draft.yml`
+
+Trigger:
+
+- `workflow_dispatch` only (manual run from GitHub Actions)
+
+Targets:
+
+- macOS package + upload to GitHub draft release
+- Windows package + upload to GitHub draft release
+
+Behavior:
+
+- Uses `GH_TOKEN=${{ github.token }}` (no extra secret required)
+- Publishes release assets with `electron-builder --publish always`
+- Keeps release type as `draft` based on `electron-builder.yml`
+
 ## Signed Packaging (manual)
 
 Workflow: `.github/workflows/release-signed.yml`

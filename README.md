@@ -14,6 +14,12 @@ Developer focus timer with GitHub activity sync.
 Claudoro is a desktop focus companion with a terminal-inspired interface, a Claude-style mascot, and practical session tracking.
 It is designed to help you stay in flow, finish more deep work, and keep momentum visible every day.
 
+## Quick Links
+
+- [Download for macOS](https://github.com/starlash7/Claudoro/releases/latest)
+- [Download for Windows](https://github.com/starlash7/Claudoro/releases/latest)
+- [Star on GitHub](https://github.com/starlash7/Claudoro)
+
 ## Launch Positioning
 
 Claudoro helps developers protect focus time and see progress in one place by combining a clean timer flow with GitHub activity context.
