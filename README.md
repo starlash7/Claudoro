@@ -23,7 +23,7 @@ It combines Pomodoro and deep-focus timing with GitHub activity context in one t
 
 ## Run From Source (Primary Distribution)
 
-Prerequisite: Node.js 22+
+Prerequisite: Node.js 22.12+
 
 ```bash
 git clone https://github.com/starlash7/Claudoro.git
@@ -113,7 +113,7 @@ Heatmap behavior:
 - Displays the current year in calendar order (`Jan` to `Dec`)
 - Uses a single timeline (no year switcher)
 
-GitHub token is stored in your OS secure keychain. Other GitHub settings are stored locally on your device.
+GitHub token is stored in your OS secure keychain when available, with an encrypted local fallback for environments where native keychain modules are unavailable. Other GitHub settings are stored locally on your device.
 
 ## Release Docs
 
